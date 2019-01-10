@@ -1,0 +1,34 @@
+name: LegendDungeon
+author: Bryan_lzh
+main: br.kt.legenddungeon.Main
+depend: [MythicMobs,BrAPI]
+version: 1.0
+
+commands:
+  LegendDungeonTeam:
+    aliases: [ldt,ldp]
+    description: 主命令
+    usage: |
+      §6/<command> create >> 创建新的队伍
+      §6/<command> leave >> 离开队伍
+      §6/<command> invite [玩家] >> 邀请玩家加入
+      §6/<command> accept >> 接受组队邀请
+      §6/<command> refuse >> 拒绝组队邀请
+      §6/<command> kick [玩家] >> 提出玩家
+      §6/<command> leader [玩家] >> 将某个玩家提升到队长
+      §6/<command> disband >> 解散队伍
+      §6/<command> play [副本名] >> 开始副本
+  LegendDungeon:
+    aliases: [ld]
+    description: 主命令
+    usage: |
+      §6/<command> create [副本名] >> 创建一个新的副本
+      §b        (请注意 会创建一个新的世界作为搭建副本用的世界)
+      §b        (在副本世界中放下的牌子都会被视为修改副本的操作)
+      §6/<command> goto [副本名] >> 传送到副本世界
+      §6/<command> triggers >> 显示可用的全部触发器
+      §6/<command> signs >> 显示可用的全部牌子
+      §6/<command> tgr [触发器类型] [参数]... >> 对指向的牌子添加触发器
+      §6/<command> maxdeath [副本] [次数] >> 设置副本的最大死亡次数
+      §6/<command> toggopen [副本] >> 切换副本开启与关闭
+      §6/<command> delete [副本] 删除一个副本(会强制让玩家退出)
