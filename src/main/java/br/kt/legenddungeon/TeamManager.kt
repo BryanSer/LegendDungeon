@@ -75,6 +75,10 @@ class Team(var leader: Player) {
         }
         return dun.createGame(this)
     }
+
+    fun isDisband(): Boolean {
+        return !TeamManager.teamMap.containsKey(this.leader.name)
+    }
 }
 
 
@@ -110,7 +114,8 @@ object TeamManager {
                     fun onPlayerQuit(evt: PlayerQuitEvent) {
                         if (playerMap.containsKey(evt.player.name)) {
                             val team = teamMap[playerMap[evt.player.name]]
-                            team?.leave(evt.player)
+                            if (team?.inGame == false)
+                                team.leave(evt.player)
                         }
                     }
                 }, Main.getMain()

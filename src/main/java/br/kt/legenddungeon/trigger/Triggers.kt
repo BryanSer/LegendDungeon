@@ -52,7 +52,7 @@ class NearTrigger : Trigger {
             override fun check(loc: Location): Boolean {
                 var found = 0
                 for (e in loc.world.getNearbyEntities(loc, radius, radius, radius)) {
-                    if (e is Player && loc.distance(e.location) < maxdistance) {
+                    if (e is Player && loc.distanceSquared(e.location) < maxdistance) {
                         found++
                         if (found >= minPlayer) {
                             return true
@@ -108,7 +108,7 @@ class KillTrigger : Trigger {
             if (evt.killer.location.world !== game.world) {
                 return
             }
-            if (evt.mob.type.displayName == mobName) {
+            if (evt.mob.type.fileName == mobName) {
                 killed++
             }
         }

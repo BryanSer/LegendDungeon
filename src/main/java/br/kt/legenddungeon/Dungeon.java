@@ -86,6 +86,11 @@ public class Dungeon implements BrConfigurationSerializable {
                 e.printStackTrace();
             }
             Bukkit.getScheduler().runTaskLater(Main.Companion.getMain(), () -> {
+                if (team.isDisband()) {
+                    delete(new File(Bukkit.getWorldContainer(), String.format("LD_Game_%s_%d", name, id)));
+                    this.creating.remove(id);
+                    return;
+                }
                 World gw = WorldManager.createFlatWorld(String.format("LD_Game_%s_%d", name, id));
                 for (LDSign sign : this.signs) {
                     Location loc = sign.getLocation().clone();
@@ -98,6 +103,7 @@ public class Dungeon implements BrConfigurationSerializable {
                 game.start();
             }, 2);
         });
+        team.setInGame(true);
         return "正在创建游戏";
     }
 
@@ -119,8 +125,8 @@ public class Dungeon implements BrConfigurationSerializable {
         }
     }
 
-    public static void copyFile(String oldPath, String newPath) throws IOException {
-        if (oldPath.contains("uid.dat")) {
+    private static void copyFile(String oldPath, String newPath) throws IOException {
+        if (oldPath.contains("uid.dat") || oldPath.contains("session.lock")) {
             return;
         }
         File oldFile = new File(oldPath);
@@ -135,6 +141,15 @@ public class Dungeon implements BrConfigurationSerializable {
 
         in.close();
         out.close();
+    }
+
+    private void delete(File f) {
+        if (f.isDirectory()) {
+            for (File d : f.listFiles()) {
+                delete(d);
+            }
+        }
+        f.delete();
     }
 
     public void removeGame(Game g) {
@@ -182,6 +197,7 @@ public class Dungeon implements BrConfigurationSerializable {
 
     public void delete() {
         for (Player p : this.getBaseWorld().getPlayers()) {
+
             Location from = DungeonManager.INSTANCE.getWhereFrom().get(p.getName());
             if (from != null) {
                 p.teleport(from);

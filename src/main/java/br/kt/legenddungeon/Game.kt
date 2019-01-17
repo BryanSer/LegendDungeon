@@ -12,6 +12,7 @@ import org.bukkit.event.HandlerList
 import org.bukkit.event.Listener
 import org.bukkit.event.entity.PlayerDeathEvent
 import org.bukkit.event.player.PlayerCommandPreprocessEvent
+import org.bukkit.event.player.PlayerQuitEvent
 import org.bukkit.event.player.PlayerRespawnEvent
 import org.bukkit.scheduler.BukkitTask
 import java.io.File
@@ -88,6 +89,13 @@ class Game(val world: World, val id: Int, val dun: Dungeon, val team: Team) : Li
         }
         evt.isCancelled = true
 
+    }
+
+    @EventHandler
+    fun onQuit(evt: PlayerQuitEvent) {
+        if (inGame(evt.player)) {
+            this.leave(evt.player, true)
+        }
     }
 
     @EventHandler
