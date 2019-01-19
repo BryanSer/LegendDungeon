@@ -20,7 +20,7 @@ import java.io.File
 object DungeonManager : Listener {
     private val dungeons: MutableMap<String, Dungeon> = HashMap()
 
-    public val whereFrom: MutableMap<String, Location> = HashMap()
+    val whereFrom: MutableMap<String, Location> = HashMap()
 
     fun init() {
         Bukkit.getPluginManager().registerEvents(this, Main.getMain())

@@ -1,5 +1,7 @@
 package br.kt.legenddungeon;
 
+import net.md_5.bungee.api.chat.BaseComponent;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -77,7 +79,7 @@ public class Dungeon implements BrConfigurationSerializable {
         World baseWorld = getBaseWorld();
         baseWorld.save();
         creating.add(id);
-        Bukkit.getScheduler().runTaskAsynchronously(Main.Companion.getMain(), () -> {
+        Bukkit.getScheduler().runTaskLaterAsynchronously(Main.Companion.getMain(), () -> {
             File old = new File(Bukkit.getWorldContainer(), baseWorld.getName());
             File tar = new File(Bukkit.getWorldContainer(), String.format("LD_Game_%s_%d", name, id));
             try {
@@ -101,8 +103,8 @@ public class Dungeon implements BrConfigurationSerializable {
                 Game game = new Game(gw, id, this, team);
                 games.put(game.getUuid(), game);
                 game.start();
-            }, 2);
-        });
+            }, 20);
+        }, 20);
         team.setInGame(true);
         return "正在创建游戏";
     }
@@ -206,5 +208,9 @@ public class Dungeon implements BrConfigurationSerializable {
             }
         }
         Bukkit.unloadWorld(this.getBaseWorldName(), false);
+    }
+
+    public static void sendMessage(Player p, BaseComponent[] cb) {
+        p.spigot().sendMessage(cb);
     }
 }

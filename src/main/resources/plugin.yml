@@ -2,7 +2,7 @@ name: LegendDungeon
 author: Bryan_lzh
 main: br.kt.legenddungeon.Main
 depend: [MythicMobs,BrAPI]
-version: 1.0
+version: 1.1
 
 commands:
   LegendDungeonTeam:
@@ -17,7 +17,6 @@ commands:
       §6/<command> kick [玩家] >> 提出玩家
       §6/<command> leader [玩家] >> 将某个玩家提升到队长
       §6/<command> disband >> 解散队伍
-      §6/<command> play [副本名] >> 开始副本
   LegendDungeon:
     aliases: [ld]
     description: 主命令
@@ -32,3 +31,4 @@ commands:
       §6/<command> maxdeath [副本] [次数] >> 设置副本的最大死亡次数
       §6/<command> toggopen [副本] >> 切换副本开启与关闭
       §6/<command> delete [副本] 删除一个副本(会强制让玩家退出)
+      §6/<command> play [副本名] >> 开始副本

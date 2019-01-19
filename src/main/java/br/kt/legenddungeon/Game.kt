@@ -2,6 +2,8 @@ package br.kt.legenddungeon
 
 import br.kt.legenddungeon.sign.InGameSign
 import br.kt.legenddungeon.sign.StartSign
+import net.md_5.bungee.api.chat.ClickEvent
+import net.md_5.bungee.api.chat.ComponentBuilder
 import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.World
@@ -85,7 +87,8 @@ class Game(val world: World, val id: Int, val dun: Dungeon, val team: Team) : Li
         if (msg.matches(Regex("/?leave"))) {
             this.leave(evt.player)
         } else {
-            evt.player.sendMessage("§c副本内不能使用命令 可输入/leave离开副本")
+            val cb = ComponentBuilder("§6点击此处离开副本").event(ClickEvent(ClickEvent.Action.RUN_COMMAND, "/leave"))
+            Dungeon.sendMessage(evt.player, cb.create())
         }
         evt.isCancelled = true
 

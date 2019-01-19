@@ -7,6 +7,7 @@ import br.kt.legenddungeon.sign.SignType
 import br.kt.legenddungeon.sign.UnTriggerable
 import br.kt.legenddungeon.trigger.Trigger
 import br.kt.legenddungeon.trigger.TriggerType
+import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.Material
 import org.bukkit.configuration.serialization.ConfigurationSerialization
@@ -198,7 +199,13 @@ class Main : JavaPlugin() {
                                 return@setExecutor true
                             }
                             dun.isEnable = false
-
+                            dun.delete()
+                            DungeonManager.deleteDungeon(dun)
+                            return@setExecutor true
+                        }
+                        "play" -> {
+                            Bukkit.dispatchCommand(p, "ldp play ${args[1]}")
+                            return@setExecutor true
                         }
                     }
                     return@setExecutor false
