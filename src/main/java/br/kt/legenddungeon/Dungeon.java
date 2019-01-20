@@ -86,6 +86,10 @@ public class Dungeon implements BrConfigurationSerializable {
                 copyDir(old.getAbsolutePath(), tar.getAbsolutePath());
             } catch (IOException e) {
                 e.printStackTrace();
+                delete(new File(Bukkit.getWorldContainer(), String.format("LD_Game_%s_%d", name, id)));
+                this.creating.remove(id);
+                team.broadcast("§c副本创建失败");
+                return;
             }
             Bukkit.getScheduler().runTaskLater(Main.Companion.getMain(), () -> {
                 if (team.isDisband()) {
@@ -109,7 +113,7 @@ public class Dungeon implements BrConfigurationSerializable {
         return "正在创建游戏";
     }
 
-    private static void copyDir(String sourcePath, String newPath) throws IOException {
+    public static void copyDir(String sourcePath, String newPath) throws IOException {
         File file = new File(sourcePath);
         String[] filePath = file.list();
 
@@ -127,7 +131,7 @@ public class Dungeon implements BrConfigurationSerializable {
         }
     }
 
-    private static void copyFile(String oldPath, String newPath) throws IOException {
+    public static void copyFile(String oldPath, String newPath) throws IOException {
         if (oldPath.contains("uid.dat") || oldPath.contains("session.lock")) {
             return;
         }
@@ -145,7 +149,7 @@ public class Dungeon implements BrConfigurationSerializable {
         out.close();
     }
 
-    private void delete(File f) {
+    public static void delete(File f) {
         if (f.isDirectory()) {
             for (File d : f.listFiles()) {
                 delete(d);
@@ -199,7 +203,6 @@ public class Dungeon implements BrConfigurationSerializable {
 
     public void delete() {
         for (Player p : this.getBaseWorld().getPlayers()) {
-
             Location from = DungeonManager.INSTANCE.getWhereFrom().get(p.getName());
             if (from != null) {
                 p.teleport(from);
@@ -208,6 +211,7 @@ public class Dungeon implements BrConfigurationSerializable {
             }
         }
         Bukkit.unloadWorld(this.getBaseWorldName(), false);
+        delete(new File(Bukkit.getWorldContainer(), this.getBaseWorldName()));
     }
 
     public static void sendMessage(Player p, BaseComponent[] cb) {

@@ -13,10 +13,21 @@ import org.bukkit.Material
 import org.bukkit.configuration.serialization.ConfigurationSerialization
 import org.bukkit.entity.Player
 import org.bukkit.plugin.java.JavaPlugin
+import java.io.File
 
 class Main : JavaPlugin() {
+
     override fun onEnable() {
         mainInstance = this
+        run {
+            val list = ArrayList<File>()
+            for (f in Bukkit.getWorldContainer().listFiles()) {
+                if (f.name.startsWith("LD_Game_")) {
+                    list.add(f)
+                }
+            }
+            list.forEach(Dungeon::delete)
+        }
         for (k in TriggerType.values());
         for (k in SignType.values());
         ConfigurationSerialization.registerClass(Dungeon::class.java)
@@ -99,6 +110,41 @@ class Main : JavaPlugin() {
                                     p.sendMessage("§b    $s")
                                 }
                             }
+                            return@setExecutor true
+                        }
+                        "cleartrg" -> {
+                            val targetBlock = p.getTargetBlock(null as MutableSet<Material>?, 50)
+                            if (targetBlock == null || !DungeonManager.isSign(targetBlock)) {
+                                p.sendMessage("§c你没有指向牌子")
+                                return@setExecutor true
+                            }
+                            val loc = targetBlock.location
+                            val dun = DungeonManager.getDungeon(loc.world)
+                            if (dun == null) {
+                                p.sendMessage("§c你不在副本世界")
+                                return@setExecutor true
+                            }
+                            if (dun.isEnable) {
+                                p.sendMessage("§c无法对开启中的副本修改内部的牌子")
+                                return@setExecutor true
+                            }
+                            var tarsign: LDSign? = null
+                            for (sign in dun.signs) {
+                                if (sign.location.block == targetBlock) {
+                                    tarsign = sign
+                                    break
+                                }
+                            }
+                            if (tarsign === null) {
+                                p.sendMessage("§c这个不是副本牌子")
+                                return@setExecutor true
+                            }
+                            if (tarsign is UnTriggerable) {
+                                p.sendMessage("§c这个牌子不接受触发器")
+                                return@setExecutor true
+                            }
+                            tarsign.triggers.clear()
+                            p.sendMessage("§6清除完成")
                             return@setExecutor true
                         }
                         "tgr" -> {
@@ -199,7 +245,6 @@ class Main : JavaPlugin() {
                                 return@setExecutor true
                             }
                             dun.isEnable = false
-                            dun.delete()
                             DungeonManager.deleteDungeon(dun)
                             return@setExecutor true
                         }

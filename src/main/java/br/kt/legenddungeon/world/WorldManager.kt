@@ -20,7 +20,6 @@ fun createWorld(name: String, func: WorldCreatorConsumer): World {
     func(wc)
     val w = wc.createWorld()
     w.isAutoSave = true
-    w.setGameRuleValue("doMobSpawning", "false")
     return w
 }
 

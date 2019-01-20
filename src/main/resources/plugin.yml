@@ -28,6 +28,7 @@ commands:
       §6/<command> triggers >> 显示可用的全部触发器
       §6/<command> signs >> 显示可用的全部牌子
       §6/<command> tgr [触发器类型] [参数]... >> 对指向的牌子添加触发器
+      §6/<command> cleartgr >> 清除指向的牌子的所有触发器
       §6/<command> maxdeath [副本] [次数] >> 设置副本的最大死亡次数
       §6/<command> toggopen [副本] >> 切换副本开启与关闭
       §6/<command> delete [副本] 删除一个副本(会强制让玩家退出)

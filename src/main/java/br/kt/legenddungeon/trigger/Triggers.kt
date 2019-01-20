@@ -105,16 +105,16 @@ class KillTrigger : Trigger {
 
         @EventHandler
         fun onKill(evt: MythicMobDeathEvent) {
-            if (evt.killer.location.world !== game.world) {
+            if (evt.mob.location.world !== game.world) {
                 return
             }
-            if (evt.mob.type.fileName == mobName) {
+            if (evt.mob.type.internalName.equals(mobName, true)) {
                 killed++
             }
         }
 
         override fun check(loc: Location): Boolean {
-            if (killed > amount) {
+            if (killed >= amount) {
                 killed -= amount
                 return true
             }

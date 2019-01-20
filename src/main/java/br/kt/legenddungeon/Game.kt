@@ -47,7 +47,7 @@ class Game(val world: World, val id: Int, val dun: Dungeon, val team: Team) : Li
             for (sign in this.signs) {
                 sign.checkTrigger()
             }
-        }, 5, 5)
+        }, 5, 2)
     }
 
     val playerFrom: MutableMap<String, Location> = HashMap()
@@ -87,7 +87,8 @@ class Game(val world: World, val id: Int, val dun: Dungeon, val team: Team) : Li
         if (msg.matches(Regex("/?leave"))) {
             this.leave(evt.player)
         } else {
-            val cb = ComponentBuilder("§6点击此处离开副本").event(ClickEvent(ClickEvent.Action.RUN_COMMAND, "/leave"))
+            val cb = ComponentBuilder("§c你不允许在副本内使用任何命令,如果想离开")
+            cb.append(ComponentBuilder("§e§n请点击此处").event(ClickEvent(ClickEvent.Action.RUN_COMMAND, "/leave")).create())
             Dungeon.sendMessage(evt.player, cb.create())
         }
         evt.isCancelled = true
