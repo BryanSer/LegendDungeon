@@ -25,7 +25,9 @@ class StartSign : LDSign, UnTriggerable {
 class MobSign : LDSign {
     constructor(args: Map<String, Any>) : super(args, SignType.MOB)
 
+    @BrConfigurationSerializable.Config(Path = "MobName")
     private var mobName: String? = null // line 1
+    @BrConfigurationSerializable.Config(Path = "MobAmount")
     private var mobAmount: Int = 1 // line 2
 
     override fun onTrigger(game: Game, loc: Location) {

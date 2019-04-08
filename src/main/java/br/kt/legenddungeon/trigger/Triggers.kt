@@ -3,13 +3,16 @@ package br.kt.legenddungeon.trigger
 import Br.API.Data.BrConfigurationSerializable
 import br.kt.legenddungeon.Game
 import br.kt.legenddungeon.Main
+import io.lumine.xikage.mythicmobs.MythicMobs
 import io.lumine.xikage.mythicmobs.api.bukkit.events.MythicMobDeathEvent
+import io.lumine.xikage.mythicmobs.mobs.ActiveMob
 import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.HandlerList
 import org.bukkit.event.Listener
+import org.bukkit.event.entity.EntityDeathEvent
 import org.bukkit.event.entity.PlayerDeathEvent
 
 class TimesTrigger : Trigger {
@@ -103,13 +106,27 @@ class KillTrigger : Trigger {
             Bukkit.getPluginManager().registerEvents(this, Main.getMain())
         }
 
-        @EventHandler
         fun onKill(evt: MythicMobDeathEvent) {
             if (evt.mob.location.world !== game.world) {
                 return
             }
             if (evt.mob.type.internalName.equals(mobName, true)) {
                 killed++
+            }
+        }
+
+
+        @EventHandler
+        fun onKill(evt: EntityDeathEvent) {
+            if (evt.entity.location.world !== game.world) {
+                return
+            }
+            val e: ActiveMob? = MythicMobs.inst().mobManager.getMythicMobInstance(evt.entity)
+                    ?: return
+            if (e != null) {
+                if (e.type.internalName.equals(mobName, true)) {
+                    killed++
+                }
             }
         }
 

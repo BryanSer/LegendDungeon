@@ -85,6 +85,9 @@ class InGameSign(
     }
 
     fun checkTrigger() {
+        if (game.gameStop) {
+            return
+        }
         if (triggeredTimes >= maxTriggerTimes) {
             return
         }

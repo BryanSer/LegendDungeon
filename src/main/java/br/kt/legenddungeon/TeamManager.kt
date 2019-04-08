@@ -1,11 +1,15 @@
 package br.kt.legenddungeon
 
 import org.bukkit.Bukkit
+import org.bukkit.Location
+import org.bukkit.configuration.file.YamlConfiguration
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
+import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerQuitEvent
 import org.bukkit.scheduler.BukkitTask
+import java.io.File
 
 class Team(var leader: Player) {
     val members = ArrayList<Player>()
@@ -245,8 +249,14 @@ object TeamManager {
                     return@setExecutor true
                 }
                 "play" -> {
+                    if (args.size > 2 && args[2] == "tryforcreate") {
+                        return@setExecutor true
+                    }
                     if (!playerMap.containsKey(p.name)) {
-                        p.sendMessage("§c你没有在任何队伍里")
+                        Bukkit.getScheduler().runTaskLater(Main.getMain(), {
+                            p.chat("/ldp create")
+                            p.chat("/ldp play ${args[1]} tryforcreate")
+                        }, 1L)
                         return@setExecutor true
                     }
                     val team = getTeam(p)!!
@@ -322,5 +332,42 @@ object TeamManager {
         val team = data.getTeam()!!
         team.broadcast("§6${p.name}拒绝了组队请求")
         return "§6成功拒绝了邀请"
+    }
+}
+
+object PlayerManager {
+    val playerFrom = HashMap<String, Location>()
+
+    fun doIt(f: (HashMap<String, Location>) -> Unit) {
+        f(playerFrom)
+        this.save()
+    }
+
+    fun load() {
+        val f = File(Main.getMain().dataFolder, "lastLocation.yml")
+        if (f.exists()) {
+            val data = YamlConfiguration.loadConfiguration(f)
+            for (key in data.getKeys(false)) {
+                playerFrom[key] = data[key] as Location
+            }
+        }
+        Bukkit.getPluginManager().registerEvents(object : Listener {
+            @EventHandler
+            fun onJoin(evt: PlayerJoinEvent) {
+                if (playerFrom.containsKey(evt.player.name)) {
+                    val loc = playerFrom.remove(evt.player.name)
+                    evt.player.teleport(loc)
+                }
+            }
+        }, Main.getMain())
+    }
+
+    fun save() {
+        val f = File(Main.getMain().dataFolder, "lastLocation.yml")
+        val data = YamlConfiguration()
+        for (e in playerFrom) {
+            data[e.key] = e.value
+        }
+        data.save(f)
     }
 }

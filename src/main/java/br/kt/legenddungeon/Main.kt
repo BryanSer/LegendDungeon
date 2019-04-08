@@ -31,14 +31,17 @@ class Main : JavaPlugin() {
         for (k in TriggerType.values());
         for (k in SignType.values());
         ConfigurationSerialization.registerClass(Dungeon::class.java)
+        PlayerManager.load()
         DungeonManager.load()
         TeamManager.init()
         initDunCommand()
         DungeonManager.init()
+
     }
 
     override fun onDisable() {
         DungeonManager.save()
+        PlayerManager.save()
     }
 
     companion object {
@@ -56,6 +59,10 @@ class Main : JavaPlugin() {
                         return@setExecutor false
                     }
                     if (!p.isOp) {
+                        if (args[0].equals("play", true)) {
+                            Bukkit.dispatchCommand(p, "ldp play ${args[1]}")
+                            return@setExecutor true
+                        }
                         return@setExecutor true
                     }
                     if (p !is Player) {
@@ -112,7 +119,7 @@ class Main : JavaPlugin() {
                             }
                             return@setExecutor true
                         }
-                        "cleartrg" -> {
+                        "cleartgr" -> {
                             val targetBlock = p.getTargetBlock(null as MutableSet<Material>?, 50)
                             if (targetBlock == null || !DungeonManager.isSign(targetBlock)) {
                                 p.sendMessage("§c你没有指向牌子")
@@ -213,6 +220,20 @@ class Main : JavaPlugin() {
                                 return@setExecutor true
                             }
                             dun.maxDeath = args[2].toInt()
+                            p.sendMessage("§6设置完成")
+                            return@setExecutor true
+                        }
+                        "time" -> {
+                            if (args.size < 3) {
+                                p.sendMessage("§c参数不足")
+                                return@setExecutor true
+                            }
+                            val dun = DungeonManager.getDungeon(args[1])
+                            if (dun === null) {
+                                p.sendMessage("§c找不到副本")
+                                return@setExecutor true
+                            }
+                            dun.timeLimit = args[2].toInt()
                             p.sendMessage("§6设置完成")
                             return@setExecutor true
                         }

@@ -1,10 +1,13 @@
 package br.kt.legenddungeon
 
+import Br.API.CallBack
+import Br.API.TitleUtils
 import br.kt.legenddungeon.sign.InGameSign
 import br.kt.legenddungeon.sign.StartSign
 import net.md_5.bungee.api.chat.ClickEvent
 import net.md_5.bungee.api.chat.ComponentBuilder
 import org.bukkit.Bukkit
+import org.bukkit.GameMode
 import org.bukkit.Location
 import org.bukkit.World
 import org.bukkit.entity.Player
@@ -16,6 +19,7 @@ import org.bukkit.event.entity.PlayerDeathEvent
 import org.bukkit.event.player.PlayerCommandPreprocessEvent
 import org.bukkit.event.player.PlayerQuitEvent
 import org.bukkit.event.player.PlayerRespawnEvent
+import org.bukkit.scheduler.BukkitRunnable
 import org.bukkit.scheduler.BukkitTask
 import java.io.File
 import java.util.*
@@ -25,7 +29,9 @@ class Game(val world: World, val id: Int, val dun: Dungeon, val team: Team) : Li
 
     private val signs = ArrayList<InGameSign>()
     private val task: BukkitTask
-    private var deathTimes = 0
+    private val playerDeathTimes = mutableMapOf<String, Int>()
+    private val startTIme = System.currentTimeMillis()
+    var gameStop = false
 
     var startLocation: Location? = null
 
@@ -38,16 +44,20 @@ class Game(val world: World, val id: Int, val dun: Dungeon, val team: Team) : Li
             signs.add(s.createInGameSign(this))
         }
         if (startLocation === null) {
-            throw IllegalStateException("没有开始副本的地方")
+            throw IllegalStateException("                                                                                                                                                                                                                                                                                                                              没有开始副本的地方")
         }
 
         Bukkit.getPluginManager().registerEvents(this, Main.getMain())
 
         task = Bukkit.getScheduler().runTaskTimer(Main.getMain(), {
+            if (System.currentTimeMillis() - startTIme >= this.dun.timeLimit * 60 * 1000L) {
+                this.gameover()
+                return@runTaskTimer
+            }
             for (sign in this.signs) {
                 sign.checkTrigger()
             }
-        }, 5, 2)
+        }, 100, 2)
     }
 
     val playerFrom: MutableMap<String, Location> = HashMap()
@@ -56,6 +66,11 @@ class Game(val world: World, val id: Int, val dun: Dungeon, val team: Team) : Li
         for (p in team.getPlayers()) {
             playerFrom[p.name] = p.location
             p.teleport(this.startLocation)
+        }
+        PlayerManager.doIt {
+            for (e in playerFrom) {
+                it[e.key] = e.value
+            }
         }
     }
 
@@ -67,6 +82,11 @@ class Game(val world: World, val id: Int, val dun: Dungeon, val team: Team) : Li
             return
         }
         team.leave(p)
+        val loc = playerFrom.remove(p.name)
+        p.teleport(loc)
+        PlayerManager.doIt {
+            it.remove(p.name)
+        }
         this.broadcast("§e§l玩家${p.name}离开了副本")
     }
 
@@ -107,16 +127,26 @@ class Game(val world: World, val id: Int, val dun: Dungeon, val team: Team) : Li
         if (!inGame(evt.entity)) {
             return
         }
-        deathTimes++
-        if (deathTimes >= dun.maxDeath) {
-            this.gameover()
-        }
+        val time = (playerDeathTimes[evt.entity.name] ?: 0) + 1
+        playerDeathTimes[evt.entity.name] = time
+        TODO("全队用尽次数")
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
     fun onRespawn(evt: PlayerRespawnEvent) {
         if (inGame(evt.player)) {
             evt.respawnLocation = this.startLocation
+            val death = playerDeathTimes[evt.player.name] ?: 0
+            if (death > this.dun.maxDeath) {
+                evt.player.sendMessage("§c你的复活次数已经用尽")
+                Bukkit.getScheduler().runTaskLater(Main.getMain(), {
+                    evt.player.gameMode = GameMode.SPECTATOR
+
+                    CallBack.SendButtonRequest(evt.player, arrayOf("§6点击此处使用背包里的复活币复活"), { p: Player?, input: Int? ->
+
+                    }, this.dun.timeLimit * 60)
+                }, 1L)
+            }
         }
     }
 
@@ -125,18 +155,37 @@ class Game(val world: World, val id: Int, val dun: Dungeon, val team: Team) : Li
     fun getPlayers(): List<Player> = team.getPlayers()
 
     fun win() {
-        this.broadcast("§6副本挑战成功 正在传送回原来的世界")
-        destroy()
+        this.broadcast("§6副本挑战成功 30秒后传送回原来的世界")
+        gameStop = true
+        val task = object : BukkitRunnable() {
+            var time = 30
+            override fun run() {
+                if (time <= 0) {
+                    this.cancel()
+                    destroy()
+                    return
+                }
+                for (p in getPlayers()) {
+                    TitleUtils.sendTitle(p, 1, 18, 1, "§6副本挑战成功 ${time}秒后传送回原来的世界", "")
+                }
+                time--
+            }
+        }.runTaskTimer(Main.getMain(), 20L, 20L)
     }
 
     fun gameover() {
-        this.broadcast("§c副本挑战失败 正在传送回原来的世界")
+        this.broadcast("§c副本挑战失败 30秒内可使用复活币")
         destroy()
     }
 
     fun destroy() {
         for (p in team.getPlayers()) {
             p.teleport(playerFrom[p.name])
+        }
+        PlayerManager.doIt {
+            for (k in playerFrom.keys) {
+                it.remove(k)
+            }
         }
         this.team.inGame = false
         this.dun.removeGame(this)

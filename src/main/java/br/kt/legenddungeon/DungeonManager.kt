@@ -88,6 +88,7 @@ object DungeonManager : Listener {
         val loc = block.location
         val dun = getDungeon(loc.world) ?: return
         if (dun.isEnable) {
+            evt.isCancelled = true
             evt.player.sendMessage("§c无法对开启中的副本修改内部的牌子")
             return
         }

@@ -45,11 +45,9 @@
             <systemPath>${project.basedir}/MythicMobs-4.1.0.jar</systemPath>
         </dependency>
         <dependency>
-            <groupId>Br.API</groupId>
+            <groupId>br.bukkit</groupId>
             <artifactId>BrAPI</artifactId>
-            <version>Release-3.4.7</version>
-            <scope>system</scope>
-            <systemPath>${project.basedir}/BrAPI.jar</systemPath>
+            <version>Release-4.0.0</version>
         </dependency>
     </dependencies>
     <build>

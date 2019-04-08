@@ -35,6 +35,9 @@ public class Dungeon implements BrConfigurationSerializable {
     private boolean enable = false;
     @Config
     private int MaxDeath = 5;
+    @Config
+    private int TimeLimit = 15;
+
     private Map<UUID, Game> games = new HashMap<>();
 
     private Set<Integer> creating = new HashSet<>();
@@ -65,6 +68,8 @@ public class Dungeon implements BrConfigurationSerializable {
     }
 
     public void init() {
+        if (TimeLimit <= 0)
+            TimeLimit = 15;
         World w = getBaseWorld();
         if (w == null) {
             w = WorldManager.createFlatWorld(this.getBaseWorldName());
@@ -111,6 +116,14 @@ public class Dungeon implements BrConfigurationSerializable {
         }, 20);
         team.setInGame(true);
         return "正在创建游戏";
+    }
+
+    public int getTimeLimit() {
+        return TimeLimit;
+    }
+
+    public void setTimeLimit(int timeLimit) {
+        TimeLimit = timeLimit;
     }
 
     public static void copyDir(String sourcePath, String newPath) throws IOException {
