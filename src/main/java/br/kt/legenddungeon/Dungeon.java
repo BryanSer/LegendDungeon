@@ -192,7 +192,7 @@ public class Dungeon implements BrConfigurationSerializable {
         if (!enable) {
             for (Game game : this.games.values()) {
                 game.broadcast("§c该副本已被关闭");
-                game.gameover();
+                game.destroy();
             }
             this.games.clear();
         }

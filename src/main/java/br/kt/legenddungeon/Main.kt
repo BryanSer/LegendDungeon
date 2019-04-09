@@ -2,6 +2,7 @@
 
 package br.kt.legenddungeon
 
+import Br.API.GUI.Ex.UIManager
 import br.kt.legenddungeon.sign.LDSign
 import br.kt.legenddungeon.sign.SignType
 import br.kt.legenddungeon.sign.UnTriggerable
@@ -36,7 +37,7 @@ class Main : JavaPlugin() {
         TeamManager.init()
         initDunCommand()
         DungeonManager.init()
-
+        UIManager.RegisterUI(RespawnUI())
     }
 
     override fun onDisable() {

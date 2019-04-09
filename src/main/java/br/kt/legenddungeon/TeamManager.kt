@@ -1,5 +1,6 @@
 package br.kt.legenddungeon
 
+import Br.API.GUI.Ex.UIManager
 import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.configuration.file.YamlConfiguration
@@ -13,7 +14,9 @@ import java.io.File
 
 class Team(var leader: Player) {
     val members = ArrayList<Player>()
-    var inGame = false
+    var inGame: Boolean = false
+    var playingGame: Game? = null
+
 
     fun getPlayers(): List<Player> {
         val list = ArrayList<Player>(members)
@@ -133,7 +136,11 @@ object TeamManager {
             if (p !is Player) {
                 return@setExecutor false
             }
-            when (args[0]) {
+            when (args[0].toLowerCase()) {
+                "respawn" -> {
+                    UIManager.OpenUI(p, "LDRUI")
+                    return@setExecutor true
+                }
                 "create" -> {
                     if (playerMap.containsKey(p.name)) {
                         p.sendMessage("§c你已经在一个队伍里了")
