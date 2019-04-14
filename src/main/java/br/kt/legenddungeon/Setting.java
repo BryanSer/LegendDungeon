@@ -1,19 +1,33 @@
 package br.kt.legenddungeon;
 
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.ListIterator;
 
 import Br.API.Utils;
 
 public class Setting {
 
-    public static String Message_Prefix;
+    public static String Message_Prefix = "[LegendDungeon]";
     public static int Team_Max_Members = 4;
     private static final String RESPAWN_COIN_KEY_LORE = "§1§2§3§3§3§r";
+    public static List<String> AllowCommand = new ArrayList<>();
+
+    public static void loadConfig() {
+        File f = new File(Main.getMain().getDataFolder(), "config.yml");
+        if (!f.exists()) {
+            Main.getMain().saveDefaultConfig();
+        }
+        YamlConfiguration config = YamlConfiguration.loadConfiguration(f);
+        AllowCommand.addAll(config.getStringList("AllowCommand"));
+    }
 
     public static boolean isRespawnCoin(ItemStack is) {
         if (is == null) {

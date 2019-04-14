@@ -76,7 +76,7 @@ public class Dungeon implements BrConfigurationSerializable {
         }
     }
 
-    public String createGame(Team team) {
+    public String createGame(Team team, LootRule rule) {
         int id = newId();
         if (id == -1) {
             return "创建失败 副本已满";
@@ -109,7 +109,7 @@ public class Dungeon implements BrConfigurationSerializable {
                     loc.getBlock().setType(Material.AIR);
                 }
                 this.creating.remove(id);
-                Game game = new Game(gw, id, this, team);
+                Game game = new Game(gw, id, this, team, rule);
                 games.put(game.getUuid(), game);
                 game.start();
             }, 20);

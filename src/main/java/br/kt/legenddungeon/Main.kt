@@ -8,6 +8,7 @@ import br.kt.legenddungeon.sign.SignType
 import br.kt.legenddungeon.sign.UnTriggerable
 import br.kt.legenddungeon.trigger.Trigger
 import br.kt.legenddungeon.trigger.TriggerType
+import me.clip.placeholderapi.external.EZPlaceholderHook
 import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.Material
@@ -35,9 +36,12 @@ class Main : JavaPlugin() {
         PlayerManager.load()
         DungeonManager.load()
         TeamManager.init()
+        Setting.loadConfig()
         initDunCommand()
         DungeonManager.init()
         UIManager.RegisterUI(RespawnUI())
+        UIManager.RegisterUI(LootUI())
+        hookPAPI()
     }
 
     override fun onDisable() {
@@ -47,8 +51,23 @@ class Main : JavaPlugin() {
 
     companion object {
         private var mainInstance: Main? = null
+        @JvmStatic
         fun getMain(): Main {
             return mainInstance as Main
+        }
+
+        fun hookPAPI() {
+            object : EZPlaceholderHook(mainInstance, "legenddungeon") {
+                override fun onPlaceholderRequest(p: Player, params: String): String {
+                    when (params) {
+                        "teamleader" -> {
+                            val t = TeamManager.getTeam(p)
+                            return t?.leader?.name ?: ""
+                        }
+                    }
+                    return ""
+                }
+            }.hook()
         }
     }
 

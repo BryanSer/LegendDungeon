@@ -1,0 +1,3 @@
+#允许使用的命令前缀
+AllowCommand:
+    - 'class cast'

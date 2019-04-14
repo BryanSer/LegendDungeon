@@ -83,8 +83,8 @@ class RespawnUI : BaseUI() {
         }
     }
 
-    override fun getItem(player: Player, i: Int): Item {
-        return contains[i]!!
+    override fun getItem(player: Player, i: Int): Item? {
+        return contains[i]
     }
 
     override fun getSnapshotFactory(): SnapshotFactory<*> {

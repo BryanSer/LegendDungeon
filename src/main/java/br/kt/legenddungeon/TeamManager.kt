@@ -1,5 +1,6 @@
 package br.kt.legenddungeon
 
+import Br.API.CallBack
 import Br.API.GUI.Ex.UIManager
 import org.bukkit.Bukkit
 import org.bukkit.Location
@@ -9,14 +10,22 @@ import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerQuitEvent
+import org.bukkit.inventory.ItemStack
 import org.bukkit.scheduler.BukkitTask
 import java.io.File
+
+enum class LootRule {
+    RANDOM,
+    LEADER;
+}
 
 class Team(var leader: Player) {
     val members = ArrayList<Player>()
     var inGame: Boolean = false
     var playingGame: Game? = null
+    val lootItem = mutableListOf<ItemStack>()
 
+    fun size(): Int = members.size + 1
 
     fun getPlayers(): List<Player> {
         val list = ArrayList<Player>(members)
@@ -80,7 +89,21 @@ class Team(var leader: Player) {
         if (!dun.isEnable) {
             return "§c这个副本没有开启"
         }
-        return dun.createGame(this)
+        Bukkit.getScheduler().runTask(Main.getMain()) {
+            CallBack.cancelButtonRequest(leader)
+            CallBack.sendButtonRequest(leader, arrayOf("§6随机掉落", "§b队长分配"), { p: Player, sel: Int? ->
+                if (sel == null) {
+                    p.sendMessage("§c选择超时 请重新输入命令")
+                    return@sendButtonRequest
+                }
+                if (sel == 0) {
+                    p.sendMessage(dun.createGame(this, LootRule.RANDOM))
+                } else {
+                    p.sendMessage(dun.createGame(this, LootRule.LEADER))
+                }
+            }, 30)
+        }
+        return "§6§l请选择掉落模式"//dun.createGame(this)
     }
 
     fun isDisband(): Boolean {
@@ -102,6 +125,7 @@ object TeamManager {
     val playerMap: MutableMap<String, String> = HashMap()//玩家->队长
 
     val inviteMap: MutableMap<String, InviteData> = HashMap()//受邀玩家
+    @JvmStatic
     fun getTeam(p: Player): Team? = teamMap[p.name]
 
     fun createTeam(leader: Player): String {
@@ -137,6 +161,10 @@ object TeamManager {
                 return@setExecutor false
             }
             when (args[0].toLowerCase()) {
+                "loot" -> {
+                    UIManager.OpenUI(p, "LDLUI")
+                    return@setExecutor true
+                }
                 "respawn" -> {
                     UIManager.OpenUI(p, "LDRUI")
                     return@setExecutor true
@@ -262,7 +290,9 @@ object TeamManager {
                     if (!playerMap.containsKey(p.name)) {
                         Bukkit.getScheduler().runTaskLater(Main.getMain(), {
                             p.chat("/ldp create")
-                            p.chat("/ldp play ${args[1]} tryforcreate")
+                            Bukkit.getScheduler().runTaskLater(Main.getMain(), {
+                                p.chat("/ldp play ${args[1]} tryforcreate")
+                            }, 20L)
                         }, 1L)
                         return@setExecutor true
                     }
