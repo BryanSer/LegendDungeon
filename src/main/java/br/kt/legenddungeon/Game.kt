@@ -6,6 +6,7 @@ import Br.API.Utils
 import br.kt.legenddungeon.sign.InGameSign
 import br.kt.legenddungeon.sign.StartSign
 import io.lumine.xikage.mythicmobs.MythicMobs
+import io.lumine.xikage.mythicmobs.api.bukkit.events.MythicMobDeathEvent
 import net.md_5.bungee.api.chat.ClickEvent
 import net.md_5.bungee.api.chat.ComponentBuilder
 import org.bukkit.Bukkit
@@ -18,13 +19,10 @@ import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.HandlerList
 import org.bukkit.event.Listener
+import org.bukkit.event.entity.EntityDamageByEntityEvent
 import org.bukkit.event.entity.EntityDeathEvent
 import org.bukkit.event.entity.PlayerDeathEvent
-import org.bukkit.event.player.PlayerCommandPreprocessEvent
-import org.bukkit.event.player.PlayerDropItemEvent
-import org.bukkit.event.player.PlayerQuitEvent
-import org.bukkit.event.player.PlayerRespawnEvent
-import org.bukkit.metadata.FixedMetadataValue
+import org.bukkit.event.player.*
 import org.bukkit.scheduler.BukkitRunnable
 import org.bukkit.scheduler.BukkitTask
 import java.io.File
@@ -35,7 +33,7 @@ class Game(
         val id: Int,
         val dun: Dungeon,
         val team: Team,
-        val lootRule: LootRule
+        val lootRule: LootRule? = LootRule.RANDOM
 ) : Listener {
     val uuid: UUID = world.uid
 
@@ -44,7 +42,6 @@ class Game(
     val playerDeathTimes = mutableMapOf<String, Int>()
     private val startTIme = System.currentTimeMillis()
     var gameStop = false
-    var checkMobAliveTime = 0L
 
     var startLocation: Location? = null
     private var lastRespawnMessage: Int = 0
@@ -75,14 +72,8 @@ class Game(
                 return@runTaskTimer
             }
             checkDropItem()
-            checkMobAliveTime++
-            if (checkMobAliveTime > 100) {
-                if (checkMobAliveTime % 50 == 0L) {
-                    checkMobAlive()
-                }
-            }
             lastRespawnMessage = (++lastRespawnMessage) % 400;
-            if (lastRespawnMessage == 0)
+            if (lastRespawnMessage == 0 && EnableRespawnCoin)
                 for (p in getPlayers()) {
                     if (p.gameMode == GameMode.SPECTATOR) {
                         for (p in getPlayers())
@@ -100,18 +91,18 @@ class Game(
         }, 100, 2)
     }
 
-    fun checkMobAlive() {
-        val mobs = MythicMobs.inst().mobManager
-        for (e in world.entities) {
-            val mob = mobs.getMythicMobInstance(e)
-            if (mob != null) {
-                return
-            }
+    @EventHandler(priority = EventPriority.MONITOR)
+    fun onEntityDamage(evt: EntityDamageByEntityEvent) {
+        if (!EnableLootRule) {
+            if (evt.damager.world === this.world)
+                evt.isCancelled = false
         }
-        this.win()
     }
 
     fun checkDropItem() {
+        if (!EnableLootRule) {
+            return
+        }
         val list = mutableListOf<Item>()
         for (item in this.world.getEntitiesByClass(Item::class.java)) {
             if (!isPlayerDrop(item))
@@ -150,7 +141,10 @@ class Game(
     }
 
     @EventHandler
-    fun onEntityDeath(evt: EntityDeathEvent) {
+    fun onEntityDeath(evt: MythicMobDeathEvent) {
+        if (!EnableLootRule) {
+            return
+        }
         if (evt.entity.world !== this.world) {
             return
         }
@@ -167,7 +161,37 @@ class Game(
             evt.drops.map { it.clone() }.forEach {
                 team.lootItem.add(it)
             }
-            Utils.sendCommandButton(this.team.leader, "§6掉落物品已放入分配库 请点击§b§l此处§6打开", "/ldp loot")
+            Utils.sendCommandButton(this.team.leader, "§6掉落物品已放入分配库 请点击§b§l此处§6打开", "/ldp loot ingameopen")
+        }
+        evt.drops.clear()
+    }
+
+    @EventHandler
+    fun onEntityDeath(evt: EntityDeathEvent) {
+        if (!EnableLootRule) {
+            return
+        }
+        if (evt.entity.world !== this.world) {
+            return
+        }
+        val mm = MythicMobs.inst().mobManager.getMythicMobInstance(evt.entity)
+        if (mm !== null) {
+            return
+        }
+        if (lootRule === LootRule.RANDOM) {
+            evt.drops.forEach {
+                val item = it.clone()
+                item.amount = 1
+                for (i in 1..it.amount) {
+                    val t = randomPlayer()
+                    Utils.safeGiveItem(t, item)
+                }
+            }
+        } else {
+            evt.drops.map { it.clone() }.forEach {
+                team.lootItem.add(it)
+            }
+            Utils.sendCommandButton(this.team.leader, "§6掉落物品已放入分配库 请点击§b§l此处§6打开", "/ldp loot ingameopen")
         }
         evt.drops.clear()
     }
@@ -195,12 +219,14 @@ class Game(
                 it[e.key] = e.value
             }
         }
-        when (this.lootRule) {
-            LootRule.LEADER -> {
-                this.broadcast("§6§l队长选择的掉落模式: §a§l[队长分配制]")
-            }
-            LootRule.RANDOM -> {
-                this.broadcast("§6§l队长选择的掉落模式: §b§l[随机分配制]")
+        if (EnableLootRule) {
+            when (this.lootRule) {
+                LootRule.LEADER -> {
+                    this.broadcast("§6§l队长选择的掉落模式: §a§l[队长分配制]")
+                }
+                LootRule.RANDOM -> {
+                    this.broadcast("§6§l队长选择的掉落模式: §b§l[随机分配制]")
+                }
             }
         }
     }
@@ -229,13 +255,30 @@ class Game(
 
     fun inGame(p: Player): Boolean = this.team.inTeam(p)
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     fun onCommand(evt: PlayerCommandPreprocessEvent) {
         if (!inGame(evt.player)) {
             return
         }
         val msg = evt.message.toLowerCase()
         if (msg.contains("ldp loot ingameopen")) {
+            return
+        }
+        if (msg.contains("ldp respawn ingame")) {
+            evt.isCancelled = true
+            val p = evt.player
+            if (p.gameMode != GameMode.SPECTATOR) {
+                return
+            }
+            if (Setting.hasRespawnCoinAndRemove(p)) {
+                p.teleport(this.startLocation)
+                p.gameMode = GameMode.SURVIVAL
+            } else {
+                p.sendMessage("§c你没有足够的复活币")
+            }
+            return
+        }
+        if (msg.contains("ldp respawn")) {
             return
         }
         if (msg.matches(Regex("/?leave"))) {
@@ -273,57 +316,34 @@ class Game(
     }
 
     fun onDropItem(evt: PlayerDropItemEvent) {
+        if (!EnableLootRule) {
+            return
+        }
         if (inGame(evt.player)) {
             setPlayerDrop(evt.itemDrop)
         }
     }
 
-    companion object {
+    companion object : Listener {
+        val drop = mutableSetOf<Int>()
+
+        @EventHandler
+        fun onPick(evt: PlayerPickupItemEvent) {
+            drop.remove(evt.item.entityId)
+        }
+
         fun setPlayerDrop(item: Item) {
-            item.setMetadata("LegendDungeon_PlayerDrop",
-                    FixedMetadataValue(Main.getMain(), true))
+            drop.add(item.entityId)
         }
 
         @JvmStatic
         fun isPlayerDrop(item: Item): Boolean {
-            if (item.hasMetadata("LegendDungeon_PlayerDrop")) {
-                if (item.getMetadata("LegendDungeon_PlayerDrop")
-                                [0].asBoolean()) {
-                    return true
-                }
-            }
-            return false;
+            return drop.contains(item.entityId)
         }
 
         @JvmField
         val RANDOM = Random()
 
-        @JvmStatic
-        fun sendRespawnRequest(p: Player, time: Int, game: Game?) {
-            if (game == null || game.gameStop) {
-                return
-            }
-            CallBack.cancelButtonRequest(p)
-            CallBack.sendButtonRequest(p, arrayOf("§8[§c§l系统§8]您的复活次数已用完,是否使用复活币复活？ §e§l§n点击我使用复活币"),
-                    { p: Player, input: Int? ->
-                        if (input === null) {
-                            return@sendButtonRequest
-                        }
-                        if (game.gameStop) {
-                            return@sendButtonRequest
-                        }
-                        if (p.gameMode == GameMode.SPECTATOR) {
-                            return@sendButtonRequest
-                        }
-                        if (Setting.hasRespawnCoinAndRemove(p)) {
-                            p.teleport(game.startLocation)
-                            p.gameMode = GameMode.SURVIVAL
-                        } else {
-                            p.sendMessage("§c你没有足够的复活币")
-                            sendRespawnRequest(p, time, game)
-                        }
-                    }, time)
-        }
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
@@ -333,10 +353,11 @@ class Game(
             val death = playerDeathTimes[evt.player.name] ?: 0
             if (death > this.dun.maxDeath) {
                 evt.player.sendMessage("§c你的复活次数已经用尽")
-                Bukkit.getScheduler().runTaskLater(Main.getMain(), {
-                    evt.player.gameMode = GameMode.SPECTATOR
-                    sendRespawnRequest(evt.player, this.dun.timeLimit * 60, this)
-                }, 1L)
+                if (EnableRespawnCoin)
+                    Bukkit.getScheduler().runTaskLater(Main.getMain(), {
+                        evt.player.gameMode = GameMode.SPECTATOR
+                        Utils.sendCommandButton(evt.player, "§8[§c§l系统§8]您的复活次数已用完,是否使用复活币复活？ §e§l§n点击我使用复活币", "/ldp respawn ingame")
+                    }, 1L)
             }
         }
     }
@@ -356,23 +377,24 @@ class Game(
                     destroy()
                     return
                 }
-                for (p in getPlayers()) {
-                    TitleUtils.sendTitle(p, 1, 18, 1, "§6副本挑战成功", "${time}秒后传送回原来的世界")
-                }
+                if (time == 30 || time <= 10)
+                    for (p in getPlayers()) {
+                        TitleUtils.sendTitle(p, 1, 18, 1, "§6副本挑战成功", "${time}秒后传送回原来的世界")
+                    }
                 time--
             }
         }.runTaskTimer(Main.getMain(), 20L, 20L)
     }
 
     fun gameover(overtime: Boolean = false) {
-        if (overtime) {
+        if (overtime || !EnableRespawnCoin) {
             this.broadcast("§c副本挑战失败")
             this.destroy()
         }
         this.broadcast("§c副本挑战失败 30秒内可使用复活币")
         gameStop = true
         for (p in getPlayers()) {
-            sendRespawnRequest(p, 30, this)
+            Utils.sendCommandButton(p, "§8[§c§l系统§8]队伍全体的复活次数已用完,是否使用复活币复活？ §e§l§n点击我使用复活币", "/ldp respawn ingame")
         }
         val task = object : BukkitRunnable() {
             var time = 30
@@ -382,9 +404,10 @@ class Game(
                     gameStop = false
                     return
                 }
-                for (p in getPlayers()) {
-                    TitleUtils.sendTitle(p, 1, 18, 1, "§c副本挑战失败", "${time}秒内可使用复活币")
-                }
+                if (time == 30 || time <= 10)
+                    for (p in getPlayers()) {
+                        TitleUtils.sendTitle(p, 1, 18, 1, "§c副本挑战失败", "${time}秒内可使用复活币")
+                    }
                 time--
                 if (time <= 0) {
                     this.cancel()

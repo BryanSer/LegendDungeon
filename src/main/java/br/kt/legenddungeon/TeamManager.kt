@@ -14,6 +14,9 @@ import org.bukkit.inventory.ItemStack
 import org.bukkit.scheduler.BukkitTask
 import java.io.File
 
+val EnableLootRule = true
+val EnableRespawnCoin = true
+
 enum class LootRule {
     RANDOM,
     LEADER;
@@ -89,6 +92,9 @@ class Team(var leader: Player) {
         if (!dun.isEnable) {
             return "§c这个副本没有开启"
         }
+        if (!EnableLootRule) {
+            return dun.createGame(this, LootRule.RANDOM)
+        }
         Bukkit.getScheduler().runTask(Main.getMain()) {
             CallBack.cancelButtonRequest(leader)
             CallBack.sendButtonRequest(leader, arrayOf("§6随机掉落", "§b队长分配"), { p: Player, sel: Int? ->
@@ -162,10 +168,16 @@ object TeamManager {
             }
             when (args[0].toLowerCase()) {
                 "loot" -> {
+                    if (!EnableLootRule) {
+                        return@setExecutor true
+                    }
                     UIManager.OpenUI(p, "LDLUI")
                     return@setExecutor true
                 }
                 "respawn" -> {
+                    if (!EnableRespawnCoin) {
+                        return@setExecutor true
+                    }
                     UIManager.OpenUI(p, "LDRUI")
                     return@setExecutor true
                 }

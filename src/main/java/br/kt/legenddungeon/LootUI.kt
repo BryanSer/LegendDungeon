@@ -11,11 +11,7 @@ import org.bukkit.event.inventory.ClickType
 
 public class LootUI : BaseUI() {
     private val factory = SnapshotFactory.getDefaultSnapshotFactory(this) { p, m ->
-        val team = TeamManager.getTeam(p)
-        if (team == null) return@getDefaultSnapshotFactory
-        if (team.leader !== p) {
-            return@getDefaultSnapshotFactory
-        }
+        val team = TeamManager.getTeam(p) ?: return@getDefaultSnapshotFactory
         m["Team"] = team
         m["Page"] = 0
 
@@ -43,21 +39,22 @@ public class LootUI : BaseUI() {
                     val page = snap.getData("Page") as Int
                     val target = page * 45 + index
                     val list = team.lootItem
-                    if (list.size >= target) {
+                    if (list.size <= target) {
                         return@getNewInstance null
                     }
                     return@getNewInstance list[target].clone()
                 }
             }.setClick(ClickType.LEFT) { p ->
-                val team = this.getTeam(p)
-                if (team == null) {
+                val team = this.getTeam(p) ?: return@setClick
+                if (team.leader !== p) {
+                    p.sendMessage("§c只有队长可以提取出里面的东西")
                     return@setClick
                 }
                 val snap = this.getSnapshot(p)
                 val page = snap.getData("Page") as Int
                 val target = page * 45 + index
                 val list = team.lootItem
-                if (list.size >= target) {
+                if (list.size <= target) {
                     return@setClick
                 }
                 val item = list.removeAt(target).clone()

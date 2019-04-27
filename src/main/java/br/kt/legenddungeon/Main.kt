@@ -42,6 +42,8 @@ class Main : JavaPlugin() {
         UIManager.RegisterUI(RespawnUI())
         UIManager.RegisterUI(LootUI())
         hookPAPI()
+        Bukkit.getPluginManager().registerEvents(Game.Companion, this)
+
     }
 
     override fun onDisable() {
@@ -55,7 +57,6 @@ class Main : JavaPlugin() {
         fun getMain(): Main {
             return mainInstance as Main
         }
-
         fun hookPAPI() {
             object : EZPlaceholderHook(mainInstance, "legenddungeon") {
                 override fun onPlaceholderRequest(p: Player, params: String): String {
@@ -63,6 +64,34 @@ class Main : JavaPlugin() {
                         "teamleader" -> {
                             val t = TeamManager.getTeam(p)
                             return t?.leader?.name ?: ""
+                        }
+                        "dun" -> {
+                            val t = TeamManager.getTeam(p)
+                            return t?.playingGame?.dun?.name ?: ""
+                        }
+                        "team1" -> {
+                            val t = TeamManager.getTeam(p)
+                            if (t == null) {
+                                return ""
+                            }
+                            val pt = t.members.getOrNull(0)
+                            return pt?.name ?: ""
+                        }
+                        "team2" -> {
+                            val t = TeamManager.getTeam(p)
+                            if (t == null) {
+                                return ""
+                            }
+                            val pt = t.members.getOrNull(1)
+                            return pt?.name ?: ""
+                        }
+                        "team3" -> {
+                            val t = TeamManager.getTeam(p)
+                            if (t == null) {
+                                return ""
+                            }
+                            val pt = t.members.getOrNull(2)
+                            return pt?.name ?: ""
                         }
                     }
                     return ""
@@ -174,7 +203,7 @@ class Main : JavaPlugin() {
                             p.sendMessage("§6清除完成")
                             return@setExecutor true
                         }
-                        "tgr" -> {
+                        "tgr", "trigger" -> {
                             if (args.size < 2) {
                                 p.sendMessage("§c参数不足 请输入/$label triggers 查看触发器说明")
                                 return@setExecutor true

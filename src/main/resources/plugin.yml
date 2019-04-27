@@ -6,7 +6,7 @@ version: 1.3
 
 commands:
   LegendDungeonTeam:
-    aliases: [ldt,ldp]
+      aliases: [ldt,ldp,dunt]
     description: 主命令
     usage: |
       §6/<command> create >> 创建新的队伍
@@ -18,7 +18,7 @@ commands:
       §6/<command> leader [玩家] >> 将某个玩家提升到队长
       §6/<command> disband >> 解散队伍
   LegendDungeon:
-    aliases: [ld]
+      aliases: [ld,dun]
     description: 主命令
     usage: |
       §6/<command> create [副本名] >> 创建一个新的副本

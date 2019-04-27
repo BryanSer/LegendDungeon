@@ -108,6 +108,8 @@ public class Dungeon implements BrConfigurationSerializable {
                     loc.setWorld(gw);
                     loc.getBlock().setType(Material.AIR);
                 }
+                gw.setAutoSave(false);
+                gw.setGameRuleValue("doMobSpawning", "false");
                 this.creating.remove(id);
                 Game game = new Game(gw, id, this, team, rule);
                 games.put(game.getUuid(), game);

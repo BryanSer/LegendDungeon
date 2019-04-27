@@ -1,5 +1,6 @@
 package br.kt.legenddungeon;
 
+import org.bukkit.ChatColor;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -9,15 +10,12 @@ import org.bukkit.inventory.meta.ItemMeta;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.ListIterator;
-
-import Br.API.Utils;
 
 public class Setting {
 
     public static String Message_Prefix = "[LegendDungeon]";
     public static int Team_Max_Members = 4;
-    private static final String RESPAWN_COIN_KEY_LORE = "§1§2§3§3§3§r";
+    private static String RESPAWN_COIN_KEY_LORE = "§1§2§3§3§3§r";
     public static List<String> AllowCommand = new ArrayList<>();
 
     public static void loadConfig() {
@@ -25,8 +23,10 @@ public class Setting {
         if (!f.exists()) {
             Main.getMain().saveDefaultConfig();
         }
+        AllowCommand.add("brapi");
         YamlConfiguration config = YamlConfiguration.loadConfiguration(f);
         AllowCommand.addAll(config.getStringList("AllowCommand"));
+        RESPAWN_COIN_KEY_LORE = ChatColor.translateAlternateColorCodes('&', config.getString("RespawnCoinLore"));
     }
 
     public static boolean isRespawnCoin(ItemStack is) {
@@ -45,16 +45,19 @@ public class Setting {
 
     public static boolean hasRespawnCoinAndRemove(Player p) {
         PlayerInventory inv = p.getInventory();
-        ListIterator<ItemStack> it = inv.iterator();
-        while (it.hasNext()) {
-            ItemStack is = it.next();
+        ItemStack[] contents = inv.getContents();
+        for (int i = 0; i < contents.length; i++) {
+            ItemStack is = contents[i];
             if (isRespawnCoin(is)) {
                 is = is.clone();
-                it.remove();
+
                 if (is.getAmount() > 1) {
                     is.setAmount(is.getAmount() - 1);
-                    Utils.safeGiveItem(p, is);
+                    contents[i] = is;
+                } else {
+                    contents[i] = null;
                 }
+                inv.setContents(contents);
                 return true;
             }
         }

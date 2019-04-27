@@ -14,6 +14,9 @@ import java.util.*
 class RespawnUI : BaseUI() {
     private val factory = SnapshotFactory.getDefaultSnapshotFactory(this) { p, m ->
         val team = TeamManager.getTeam(p)
+        if (team == null) {
+            return@getDefaultSnapshotFactory
+        }
         if (team!!.inGame) {
             m["Game"] = team.playingGame
         }
@@ -44,7 +47,7 @@ class RespawnUI : BaseUI() {
             contains[index] = Item.getNewInstance { p ->
                 val game = getGame(p) ?: return@getNewInstance null
                 val list = game.team.getPlayers()
-                if (list.size >= index) {
+                if (list.size <= index) {
                     return@getNewInstance null
                 }
                 val target = list[index]
@@ -66,7 +69,7 @@ class RespawnUI : BaseUI() {
             }.setClick(ClickType.LEFT) { p: Player ->
                 val game = getGame(p) ?: return@setClick
                 val list = game.team.getPlayers()
-                if (list.size >= index) {
+                if (list.size <= index) {
                     return@setClick
                 }
                 val target = list[index]

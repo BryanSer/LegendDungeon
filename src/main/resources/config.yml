@@ -1,3 +1,5 @@
 #允许使用的命令前缀
 AllowCommand:
     - 'class cast'
+#复活币的特殊lore
+RespawnCoinLore: '&1&2&3&3&3&r'

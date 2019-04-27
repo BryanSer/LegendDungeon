@@ -119,7 +119,7 @@ enum class SignType(val type: String, private val clazz: Class<out LDSign>, val 
     MOB("Mob", MobSign::class.java, arrayOf("标识怪物刷新点", "参数: [s怪物名] | (i数量:1)", "接受触发器 若无参数 将会自动在玩家进入副本执行")),
     MESSAGE("Message", MessageSign::class.java, arrayOf("向玩家发送消息", "参数: [s信息] 三行信息将会合并", "接受触发器")),
     ACTIONBAR("ActionBar", ActionBarSign::class.java, arrayOf("向玩家发送物品栏上方的小字", "参数: [s信息] 三行信息将会合并", "接受触发器")),
-    TELEPORT(":", TeleportSign::class.java, arrayOf("将玩家传送", "参数: (s x y z坐标) 接受触发器", "无参数表示传送到牌子所在位置")),
+    TELEPORT("Teleport", TeleportSign::class.java, arrayOf("将玩家传送", "参数: (s x y z坐标) 接受触发器", "无参数表示传送到牌子所在位置")),
     COMMAND("Command", CommandSign::class.java, arrayOf("执行命令", "参数: [s命令]多行将会合并 换行不代表空格", "%p为玩家名字变量 命令为后台执行")),
     COMPLETE("Complete", CompleteSign::class.java, arrayOf("触发本牌子后完成副本", "无参数 接受触发器"));
 

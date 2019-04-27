@@ -91,6 +91,37 @@ class NearTrigger : Trigger {
     }
 }
 
+class KillAllTrigger : Trigger {
+    override fun arguments(args: Array<String>): Boolean {
+        return true
+    }
+
+    constructor() : super(TriggerType.KILL)
+
+    constructor(args: Map<String, Any>) : super(TriggerType.KILLALL) {
+        BrConfigurationSerializable.deserialize(args, this)
+    }
+
+    inner class InGameKillAllTrigger(val game: Game) : InGameTrigger() {
+        override fun check(loc: Location): Boolean {
+            val mobs = MythicMobs.inst().mobManager
+            for (e in game.world.entities) {
+                val mob = mobs.getMythicMobInstance(e)
+                if (mob != null) {
+                    return false
+                }
+            }
+            return true
+        }
+
+    }
+
+    override fun create(game: Game): InGameTrigger {
+        return InGameKillAllTrigger(game)
+    }
+
+}
+
 class KillTrigger : Trigger {
     constructor() : super(TriggerType.KILL)
 
