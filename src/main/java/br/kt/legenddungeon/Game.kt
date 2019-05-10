@@ -42,6 +42,7 @@ class Game(
     val playerDeathTimes = mutableMapOf<String, Int>()
     private val startTIme = System.currentTimeMillis()
     var gameStop = false
+    private var gameWin = false
 
     var startLocation: Location? = null
     private var lastRespawnMessage: Int = 0
@@ -231,20 +232,31 @@ class Game(
         }
     }
 
+    val leftPlayers = mutableListOf<String>()
+
     fun leave(p: Player, tip: Boolean = false) {
-        if (p == this.team.leader) {
+        if (p == this.team.leader && !gameWin) {
             this.broadcast("§c队长离开了副本 副本自动结束")
             this.destroy()
-            this.team.disband()
+            //this.team.disband()
             return
         }
-        team.leave(p)
+        if (!gameWin)
+            team.leave(p)
         val loc = playerFrom.remove(p.name)
-        p.teleport(loc)
+        if (loc != null)
+            p.teleport(loc)
         PlayerManager.doIt {
             it.remove(p.name)
         }
         this.broadcast("§e§l玩家${p.name}离开了副本")
+        if (gameWin) {
+            leftPlayers.add(p.name)
+            val list = this.world.getEntitiesByClass(Player::class.java)
+            if (list.isEmpty()) {
+                this.destroy()
+            }
+        }
     }
 
     fun broadcast(msg: String) {
@@ -253,7 +265,7 @@ class Game(
         }
     }
 
-    fun inGame(p: Player): Boolean = this.team.inTeam(p)
+    fun inGame(p: Player): Boolean = this.team.inTeam(p) && !this.leftPlayers.contains(p.name)
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     fun onCommand(evt: PlayerCommandPreprocessEvent) {
@@ -364,11 +376,12 @@ class Game(
 
     fun inWorld(wd: World): Boolean = wd === world
 
-    fun getPlayers(): List<Player> = team.getPlayers()
+    fun getPlayers(): List<Player> = team.getPlayers().filter(::inGame).toList()
 
     fun win() {
         this.broadcast("§6副本挑战成功 30秒后传送回原来的世界")
         gameStop = true
+        gameWin = true
         val task = object : BukkitRunnable() {
             var time = 30
             override fun run() {
@@ -393,8 +406,9 @@ class Game(
         }
         this.broadcast("§c副本挑战失败 30秒内可使用复活币")
         gameStop = true
+        //gameWin = true
         for (p in getPlayers()) {
-            Utils.sendCommandButton(p, "§8[§c§l系统§8]队伍全体的复活次数已用完,是否使用复活币复活？ §e§l§n点击我使用复活币", "/ldp respawn ingame")
+            Utils.sendCommandButton(p, "§8[§c§l系统§8]队伍全体的复活次数已用完,是否使用复活币复活？ §e§l§n点击我使用复活币", "/ldp respawn")
         }
         val task = object : BukkitRunnable() {
             var time = 30
@@ -402,6 +416,7 @@ class Game(
                 if (checkAlive()) {
                     this.cancel()
                     gameStop = false
+                    gameWin = false
                     return
                 }
                 if (time == 30 || time <= 10)
@@ -418,10 +433,17 @@ class Game(
         }.runTaskTimer(Main.getMain(), 20L, 20L)
     }
 
+    private var destoryed = false
+
     fun destroy() {
+        if (destoryed) {
+            return
+        }
+        destoryed = true
+        HandlerList.unregisterAll(this)
         for (p in team.getPlayers()) {
             CallBack.cancelButtonRequest(p)
-            p.teleport(playerFrom[p.name])
+            p.teleport(playerFrom[p.name] ?: continue)
         }
         PlayerManager.doIt {
             for (k in playerFrom.keys) {
@@ -431,7 +453,6 @@ class Game(
         team.playingGame = null
         this.team.inGame = false
         this.dun.removeGame(this)
-        HandlerList.unregisterAll(this)
         this.task.cancel()
         val f = File(Bukkit.getWorldContainer(), this.world.name)
         Bukkit.unloadWorld(this.world.name, false)

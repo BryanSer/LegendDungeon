@@ -9,7 +9,7 @@ import org.bukkit.Material
 import org.bukkit.entity.Player
 import org.bukkit.event.inventory.ClickType
 
-public class LootUI : BaseUI() {
+class LootUI : BaseUI() {
     private val factory = SnapshotFactory.getDefaultSnapshotFactory(this) { p, m ->
         val team = TeamManager.getTeam(p) ?: return@getDefaultSnapshotFactory
         m["Team"] = team

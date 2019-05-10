@@ -118,6 +118,13 @@ class Main : JavaPlugin() {
                         return@setExecutor false
                     }
                     when (args[0]) {
+                        "loot" -> {
+                            if (!EnableLootRule) {
+                                return@setExecutor true
+                            }
+                            UIManager.OpenUI(p, "LDLUI")
+                            return@setExecutor true
+                        }
                         "create" -> {
                             if (args.size < 2) {
                                 p.sendMessage("§c参数不足")

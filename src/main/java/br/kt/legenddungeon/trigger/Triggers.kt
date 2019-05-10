@@ -7,6 +7,7 @@ import io.lumine.xikage.mythicmobs.MythicMobs
 import io.lumine.xikage.mythicmobs.mobs.ActiveMob
 import org.bukkit.Bukkit
 import org.bukkit.Location
+import org.bukkit.entity.LivingEntity
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.HandlerList
@@ -106,6 +107,9 @@ class KillAllTrigger : Trigger {
         override fun check(loc: Location): Boolean {
             val mobs = MythicMobs.inst().mobManager
             for (e in game.world.entities) {
+                if (e !is LivingEntity) {
+                    continue
+                }
                 val mob = mobs.getMythicMobInstance(e)
                 if (mob != null) {
                     return false
