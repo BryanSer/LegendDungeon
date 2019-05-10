@@ -150,9 +150,12 @@ object TeamManager {
                     @EventHandler
                     fun onPlayerQuit(evt: PlayerQuitEvent) {
                         if (playerMap.containsKey(evt.player.name)) {
-                            val team = teamMap[playerMap[evt.player.name]]
-                            if (team?.inGame == false)
+                            val team = teamMap[playerMap[evt.player.name]] ?: return
+                            if (!team.inGame)
                                 team.leave(evt.player)
+                            else {
+                                team.playingGame?.leave(evt.player) ?: team.leave(evt.player)
+                            }
                         }
                     }
                 }, Main.getMain()
