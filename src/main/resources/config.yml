@@ -2,4 +2,4 @@
 AllowCommand:
     - 'class cast'
 #复活币的特殊lore
-RespawnCoinLore: '&1&2&3&3&3&r'
+RespawnCoinLore: '&r&e&a&c&r'

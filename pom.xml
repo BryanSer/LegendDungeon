@@ -57,7 +57,7 @@
         <dependency>
             <groupId>br.bukkit</groupId>
             <artifactId>BrAPI</artifactId>
-            <version>Release-4.0.0</version>
+            <version>Release-4.1.0</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>

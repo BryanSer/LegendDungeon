@@ -7,6 +7,7 @@ import org.bukkit.Location
 import org.bukkit.configuration.file.YamlConfiguration
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
+import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerQuitEvent
@@ -147,15 +148,11 @@ object TeamManager {
     fun init() {
         Bukkit.getPluginManager().registerEvents(
                 object : Listener {
-                    @EventHandler
+                    @EventHandler(priority = EventPriority.HIGHEST)
                     fun onPlayerQuit(evt: PlayerQuitEvent) {
                         if (playerMap.containsKey(evt.player.name)) {
                             val team = teamMap[playerMap[evt.player.name]] ?: return
-                            if (!team.inGame)
                                 team.leave(evt.player)
-                            else {
-                                team.playingGame?.leave(evt.player) ?: team.leave(evt.player)
-                            }
                         }
                     }
                 }, Main.getMain()
@@ -235,7 +232,12 @@ object TeamManager {
                         p.sendMessage("§c找不到玩家")
                         return@setExecutor true
                     }
-                    val team = getTeam(p)!!
+                    val team = getTeam(p)
+                    if (team == null) {
+                        playerMap -= p.name
+                        p.sendMessage("§c你没有在任何队伍里")
+                        return@setExecutor true
+                    }
                     if (p != team.leader) {
                         p.sendMessage("§c你不能踢出小队成员")
                         return@setExecutor true

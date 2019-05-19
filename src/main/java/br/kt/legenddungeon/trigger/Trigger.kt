@@ -5,12 +5,7 @@ import br.kt.legenddungeon.Game
 import org.bukkit.Location
 import org.bukkit.configuration.serialization.ConfigurationSerialization
 
-abstract class Trigger : BrConfigurationSerializable {
-    val type: TriggerType
-
-    constructor(type: TriggerType) {
-        this.type = type
-    }
+abstract class Trigger(val type: TriggerType) : BrConfigurationSerializable {
 
     abstract fun create(game: Game): InGameTrigger
 
