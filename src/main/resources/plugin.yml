@@ -2,7 +2,7 @@ name: LegendDungeon
 author: Bryan_lzh
 main: br.kt.legenddungeon.Main
 depend: [MythicMobs,BrAPI,PlaceholderAPI]
-version: 1.4
+version: 1.4.2
 
 commands:
   LegendDungeonTeam:
@@ -34,3 +34,5 @@ commands:
       §6/<command> toggopen [副本] >> 切换副本开启与关闭
       §6/<command> delete [副本] 删除一个副本(会强制让玩家退出)
       §6/<command> play [副本名] >> 开始副本
+      §6/<command> save [副本名] >> 强制储存副本数据到硬盘
+      §6/<coomand> load [副本名] >> 强制从硬盘读取副本数据(并且替换内存中的)

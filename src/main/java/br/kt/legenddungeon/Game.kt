@@ -3,6 +3,7 @@ package br.kt.legenddungeon
 import Br.API.CallBack
 import Br.API.TitleUtils
 import Br.API.Utils
+import br.kt.legenddungeon.event.LDMobKillEvent
 import br.kt.legenddungeon.sign.InGameSign
 import br.kt.legenddungeon.sign.StartSign
 import io.lumine.xikage.mythicmobs.MythicMobs
@@ -15,6 +16,7 @@ import org.bukkit.Location
 import org.bukkit.World
 import org.bukkit.entity.Item
 import org.bukkit.entity.Player
+import org.bukkit.entity.Projectile
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.HandlerList
@@ -141,6 +143,42 @@ class Game(
         return this.team.members[target - 1]
     }
 
+    private val lastDamage = mutableMapOf<Int?, String>()
+
+    @EventHandler(priority = EventPriority.LOWEST)
+    fun onEntityDamage_setKiller(evt: EntityDamageByEntityEvent) {
+        if (evt.entity.world != this.world) {
+            return
+        }
+        val p = if (evt.damager is Player) {
+            evt.damager as Player
+        } else {
+            if (evt.damager is Projectile) {
+                val proj = evt.damager as Projectile
+                if (proj.shooter is Player) {
+                    proj.shooter as Player
+                } else {
+                    return;
+                }
+            } else {
+                return;
+            }
+        }
+        lastDamage[evt.entity.entityId] = p.name
+    }
+
+    @EventHandler(priority = EventPriority.LOWEST)
+    fun onEntityDeath_setKiller(evt: EntityDeathEvent) {
+        if (evt.entity.world != this.world) {
+            return
+        }
+        if (evt.entity.killer != null) {
+            return
+        }
+        val p = Bukkit.getPlayerExact(lastDamage[evt.entity.entityId]) ?: return
+        RefTool.setKiller(evt.entity, p)
+    }
+
     @EventHandler
     fun onEntityDeath(evt: MythicMobDeathEvent) {
         if (!EnableLootRule) {
@@ -169,6 +207,8 @@ class Game(
 
     @EventHandler
     fun onEntityDeath(evt: EntityDeathEvent) {
+        val ldmke = LDMobKillEvent(this, evt.entity)
+        Bukkit.getPluginManager().callEvent(ldmke)
         if (!EnableLootRule) {
             return
         }
@@ -214,6 +254,7 @@ class Game(
             playerFrom[p.name] = p.location
             p.teleport(this.startLocation)
             playerDeathTimes[p.name] = 0
+            p.gameMode = GameMode.ADVENTURE
         }
         PlayerManager.doIt {
             for (e in playerFrom) {
@@ -284,7 +325,7 @@ class Game(
             }
             if (Setting.hasRespawnCoinAndRemove(p)) {
                 p.teleport(this.startLocation)
-                p.gameMode = GameMode.SURVIVAL
+                p.gameMode = GameMode.ADVENTURE
             } else {
                 p.sendMessage("§c你没有足够的复活币")
             }
@@ -324,7 +365,9 @@ class Game(
         }
         val time = (playerDeathTimes[evt.entity.name] ?: 0) + 1
         playerDeathTimes[evt.entity.name] = time
-        evt.entity.spigot().respawn()
+        Bukkit.getScheduler().runTaskLater(Main.getMain(), {
+            evt.entity.spigot().respawn()
+        }, 10)
     }
 
     fun onDropItem(evt: PlayerDropItemEvent) {

@@ -48,8 +48,8 @@ class Team(var leader: Player) {
     }
 
     fun join(p: Player) {
-        this.broadcast("§6[${p.name}]加入了小队")
         members.add(p)
+        this.broadcast("§6[${p.name}]加入了小队")
         TeamManager.playerMap[p.name] = leader.name
     }
 
@@ -133,7 +133,7 @@ object TeamManager {
 
     val inviteMap: MutableMap<String, InviteData> = HashMap()//受邀玩家
     @JvmStatic
-    fun getTeam(p: Player): Team? = teamMap[p.name]
+    fun getTeam(p: Player): Team? = teamMap[playerMap[p.name]]
 
     fun createTeam(leader: Player): String {
         if (playerMap.containsKey(leader.name)) {
@@ -190,6 +190,7 @@ object TeamManager {
                     return@setExecutor true
                 }
                 "leave" -> {
+
                     if (!playerMap.containsKey(p.name)) {
                         p.sendMessage("§c你没有在任何队伍里")
                         return@setExecutor true

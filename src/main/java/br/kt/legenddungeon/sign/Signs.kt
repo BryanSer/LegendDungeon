@@ -2,6 +2,7 @@ package br.kt.legenddungeon.sign
 
 import Br.API.ActionBar
 import Br.API.Data.BrConfigurationSerializable
+import Br.API.TitleUtils
 import br.kt.legenddungeon.Game
 import br.kt.legenddungeon.Setting
 import io.lumine.xikage.mythicmobs.MythicMobs
@@ -9,10 +10,35 @@ import org.bukkit.Bukkit
 import org.bukkit.ChatColor
 import org.bukkit.Location
 
+class TitleSign : LDSign {
+
+    @BrConfigurationSerializable.Config(Path = "Title")
+    var title: String? = null
+    @BrConfigurationSerializable.Config(Path = "Subtitle")
+    var subtitle: String? = null
+
+    constructor(loc: Location) : super("Title", loc)
+    constructor(args: Map<String, Any>) : super(args, "Title")
+
+    override fun read(info: Array<String>): Boolean {
+        title = ChatColor.translateAlternateColorCodes('&',
+                (info.getOrNull(0) ?: "") + (info.getOrNull(1) ?: ""))
+        subtitle = ChatColor.translateAlternateColorCodes('&', info.getOrNull(2) ?: "")
+        return true
+    }
+
+    override fun onTrigger(game: Game, loc: Location) {
+        for (p in game.getPlayers()) {
+            TitleUtils.sendTitle(p, 10, 30, 10, title, subtitle)
+        }
+    }
+
+}
+
 class StartSign : LDSign, UnTriggerable {
 
-    constructor(loc: Location) : super(SignType.START, loc)
-    constructor(args: Map<String, Any>) : super(args, SignType.START)
+    constructor(loc: Location) : super("Start", loc)
+    constructor(args: Map<String, Any>) : super(args, "Start")
 
     override fun onTrigger(game: Game, loc: Location) {
     }
@@ -23,7 +49,7 @@ class StartSign : LDSign, UnTriggerable {
 }
 
 class MobSign : LDSign {
-    constructor(args: Map<String, Any>) : super(args, SignType.MOB)
+    constructor(args: Map<String, Any>) : super(args, "Mob")
 
     @BrConfigurationSerializable.Config(Path = "MobName")
     private var mobName: String? = null // line 1
@@ -53,14 +79,14 @@ class MobSign : LDSign {
     }
 
 
-    constructor(loc: Location) : super(SignType.MOB, loc)
+    constructor(loc: Location) : super("Mob", loc)
 
 }
 
 class MessageSign : LDSign {
 
-    constructor(loc: Location) : super(SignType.MESSAGE, loc)
-    constructor(args: Map<String, Any>) : super(args, SignType.MESSAGE)
+    constructor(loc: Location) : super("Message", loc)
+    constructor(args: Map<String, Any>) : super(args, "Message")
 
     @BrConfigurationSerializable.Config(Path = "Message")
     private var message: String = ""
@@ -85,8 +111,8 @@ class MessageSign : LDSign {
 }
 
 class ActionBarSign : LDSign {
-    constructor(loc: Location) : super(SignType.ACTIONBAR, loc)
-    constructor(args: Map<String, Any>) : super(args, SignType.ACTIONBAR)
+    constructor(loc: Location) : super("ActionBar", loc)
+    constructor(args: Map<String, Any>) : super(args, "ActionBar")
 
     @BrConfigurationSerializable.Config(Path = "Message")
     private var message: String = ""
@@ -111,13 +137,13 @@ class ActionBarSign : LDSign {
 }
 
 class TeleportSign : LDSign {
-    constructor(loc: Location) : super(SignType.TELEPORT, loc) {
+    constructor(loc: Location) : super("Teleport", loc) {
         x = loc.blockX
         y = loc.blockY
         z = loc.blockZ
     }
 
-    constructor(args: Map<String, Any>) : super(args, SignType.TELEPORT)
+    constructor(args: Map<String, Any>) : super(args, "Teleport")
 
     @BrConfigurationSerializable.Config
     var x: Int = 0
@@ -162,8 +188,8 @@ class TeleportSign : LDSign {
 }
 
 class CommandSign : LDSign {
-    constructor(loc: Location) : super(SignType.COMMAND, loc)
-    constructor(args: Map<String, Any>) : super(args, SignType.COMMAND)
+    constructor(loc: Location) : super("Command", loc)
+    constructor(args: Map<String, Any>) : super(args, "Command")
 
     @BrConfigurationSerializable.Config(Path = "Command")
     private var command: String = ""
@@ -192,8 +218,8 @@ class CommandSign : LDSign {
 }
 
 class CompleteSign : LDSign {
-    constructor(loc: Location) : super(SignType.COMPLETE, loc)
-    constructor(args: Map<String, Any>) : super(args, SignType.COMPLETE)
+    constructor(loc: Location) : super("Complete", loc)
+    constructor(args: Map<String, Any>) : super(args, "Complete")
 
     override fun onTrigger(game: Game, loc: Location) {
         game.win()

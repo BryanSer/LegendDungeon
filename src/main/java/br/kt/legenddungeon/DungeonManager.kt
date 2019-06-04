@@ -1,7 +1,7 @@
 package br.kt.legenddungeon
 
 import br.kt.legenddungeon.sign.LDSign
-import br.kt.legenddungeon.sign.SignType
+import br.kt.legenddungeon.sign.SignManager
 import br.kt.legenddungeon.world.loadWorld
 import org.bukkit.Bukkit
 import org.bukkit.Location
@@ -52,7 +52,7 @@ object DungeonManager : Listener {
         }
         if (type.matches(Regex("\\[[a-zA-Z]*\\]"))) {
             type = type.replace("]", "").replace("[", "")
-            val signtype = SignType.getSignType(type)
+            val signtype = SignManager.getSignType(type)
             if (signtype === null) {
                 evt.isCancelled = true
                 evt.player.sendMessage("§c找不到合适的牌子类型")
@@ -148,6 +148,21 @@ object DungeonManager : Listener {
         }
     }
 
+    fun load(name: String): String {
+        val folder = File(Main.getMain().dataFolder, "Dungeons")
+        if (!folder.exists()) {
+            return "§c找不到数据"
+        }
+        val f = File(folder, "$name.yml")
+        if (!f.exists()) {
+            return "§c找不到数据"
+        }
+        val data = YamlConfiguration.loadConfiguration(f)
+        println(data)
+        dungeons[name] = data["Dungeon"] as Dungeon
+        return "§6读取成功"
+    }
+
     fun save() {
         val folder = File(Main.getMain().dataFolder, "Dungeons")
         if (!folder.exists()) {
@@ -166,5 +181,16 @@ object DungeonManager : Listener {
                 f.delete()
             }
         }
+    }
+
+    fun save(dun: Dungeon) {
+        val folder = File(Main.getMain().dataFolder, "Dungeons")
+        if (!folder.exists()) {
+            folder.mkdirs()
+        }
+        val f = File(folder, dun.name + ".yml")
+        val yaml = YamlConfiguration()
+        yaml.set("Dungeon", dun)
+        yaml.save(f)
     }
 }

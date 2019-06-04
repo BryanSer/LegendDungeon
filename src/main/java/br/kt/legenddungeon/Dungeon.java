@@ -82,13 +82,18 @@ public class Dungeon implements BrConfigurationSerializable {
             return "创建失败 副本已满";
         }
         World baseWorld = getBaseWorld();
-        baseWorld.save();
+        //baseWorld.save();
         creating.add(id);
         Bukkit.getScheduler().runTaskLaterAsynchronously(Main.Companion.getMain(), () -> {
             File old = new File(Bukkit.getWorldContainer(), baseWorld.getName());
             File tar = new File(Bukkit.getWorldContainer(), String.format("LD_Game_%s_%d", name, id));
             try {
                 copyDir(old.getAbsolutePath(), tar.getAbsolutePath());
+                for (File f : tar.listFiles()) {
+                    if (f.getName().contains("session.lock")) {
+                        f.delete();
+                    }
+                }
             } catch (IOException e) {
                 e.printStackTrace();
                 delete(new File(Bukkit.getWorldContainer(), String.format("LD_Game_%s_%d", name, id)));

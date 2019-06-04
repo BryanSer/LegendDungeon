@@ -16,7 +16,7 @@ import org.bukkit.event.entity.EntityDeathEvent
 import org.bukkit.event.entity.PlayerDeathEvent
 
 class TimesTrigger : Trigger {
-    constructor() : super(TriggerType.TIMES)
+    constructor() : super("Times")
 
     override fun create(game: Game): InGameTrigger {
         return object : InGameTrigger() {
@@ -41,13 +41,13 @@ class TimesTrigger : Trigger {
         return true
     }
 
-    constructor(args: Map<String, Any>) : super(TriggerType.TIMES) {
+    constructor(args: Map<String, Any>) : super("Times") {
         BrConfigurationSerializable.deserialize(args, this)
     }
 }
 
 class NearTrigger : Trigger {
-    constructor() : super(TriggerType.NEAR)
+    constructor() : super("Near")
 
     override fun create(game: Game): InGameTrigger {
         val maxdistance = radius * radius
@@ -87,7 +87,7 @@ class NearTrigger : Trigger {
         return true
     }
 
-    constructor(args: Map<String, Any>) : super(TriggerType.NEAR) {
+    constructor(args: Map<String, Any>) : super("Near") {
         BrConfigurationSerializable.deserialize(args, this)
     }
 }
@@ -97,9 +97,9 @@ class KillAllTrigger : Trigger {
         return true
     }
 
-    constructor() : super(TriggerType.KILL)
+    constructor() : super("KillAll")
 
-    constructor(args: Map<String, Any>) : super(TriggerType.KILLALL) {
+    constructor(args: Map<String, Any>) : super("KillAll") {
         BrConfigurationSerializable.deserialize(args, this)
     }
 
@@ -127,9 +127,9 @@ class KillAllTrigger : Trigger {
 }
 
 class KillTrigger : Trigger {
-    constructor() : super(TriggerType.KILL)
+    constructor() : super("Kill")
 
-    constructor(args: Map<String, Any>) : super(TriggerType.KILL) {
+    constructor(args: Map<String, Any>) : super("Kill") {
         BrConfigurationSerializable.deserialize(args, this)
     }
 
@@ -196,9 +196,9 @@ class KillTrigger : Trigger {
 }
 
 class DeathTrigger : Trigger {
-    constructor() : super(TriggerType.DEATH)
+    constructor() : super("Death")
 
-    constructor(args: Map<String, Any>) : super(TriggerType.DEATH) {
+    constructor(args: Map<String, Any>) : super("Death") {
         BrConfigurationSerializable.deserialize(args, this)
     }
 

@@ -3,11 +3,12 @@
 package br.kt.legenddungeon
 
 import Br.API.GUI.Ex.UIManager
+import Br.API.ktsuger.msg
 import br.kt.legenddungeon.sign.LDSign
-import br.kt.legenddungeon.sign.SignType
+import br.kt.legenddungeon.sign.SignManager
 import br.kt.legenddungeon.sign.UnTriggerable
 import br.kt.legenddungeon.trigger.Trigger
-import br.kt.legenddungeon.trigger.TriggerType
+import br.kt.legenddungeon.trigger.TriggerManager
 import me.clip.placeholderapi.external.EZPlaceholderHook
 import org.bukkit.Bukkit
 import org.bukkit.Location
@@ -30,8 +31,8 @@ class Main : JavaPlugin() {
             }
             list.forEach(Dungeon::delete)
         }
-        for (k in TriggerType.values());
-        for (k in SignType.values());
+        TriggerManager.init()
+        SignManager.init()
         ConfigurationSerialization.registerClass(Dungeon::class.java)
         PlayerManager.load()
         DungeonManager.load()
@@ -118,6 +119,28 @@ class Main : JavaPlugin() {
                         return@setExecutor false
                     }
                     when (args[0]) {
+                        "save" -> {
+                            if (args.size < 2) {
+                                p.sendMessage("§c参数不足")
+                                return@setExecutor false
+                            }
+                            val dun = DungeonManager.getDungeon(args[1])
+                            if (dun == null) {
+                                p msg "§c副本不存在"
+                                return@setExecutor true
+                            }
+                            DungeonManager.save(dun)
+                            p msg "§6强制储存成功"
+                            return@setExecutor true
+                        }
+                        "load" -> {
+                            if (args.size < 2) {
+                                p.sendMessage("§c参数不足")
+                                return@setExecutor false
+                            }
+                            p msg DungeonManager.load(args[1])
+                            return@setExecutor true
+                        }
                         "loot" -> {
                             if (!EnableLootRule) {
                                 return@setExecutor true
@@ -157,7 +180,7 @@ class Main : JavaPlugin() {
                         }
                         "triggers" -> {
                             p.sendMessage("§e§l[]为必填参数 ()为可选参数 i表示整数 d表示小数 s表示字符串")
-                            for (tri in TriggerType.values()) {
+                            for (tri in TriggerManager.registered) {
                                 p.sendMessage("§6${tri.type}: ")
                                 for (s in tri.des) {
                                     p.sendMessage("§b    $s")
@@ -167,7 +190,7 @@ class Main : JavaPlugin() {
                         }
                         "signs" -> {
                             p.sendMessage("§e§l[]为必填参数 ()为可选参数 i表示整数 d表示小数 s表示字符串")
-                            for (tri in SignType.values()) {
+                            for (tri in SignManager.registered) {
                                 p.sendMessage("§6${tri.type}: ")
                                 for (s in tri.des) {
                                     p.sendMessage("§b    $s")
@@ -246,7 +269,7 @@ class Main : JavaPlugin() {
                                 p.sendMessage("§c这个牌子不接受触发器")
                                 return@setExecutor true
                             }
-                            val trit = TriggerType.getTriggerType(args[1])
+                            val trit = TriggerManager.getTriggerType(args[1])
                             if (trit === null) {
                                 p.sendMessage("§c找不到触发器${args[1]}")
                                 return@setExecutor true

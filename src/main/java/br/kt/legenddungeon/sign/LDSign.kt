@@ -13,19 +13,19 @@ typealias InGameTriggerList = ArrayList<InGameTrigger>
 
 abstract class LDSign : BrConfigurationSerializable {
 
-    var type: SignType
+    var type: String
     @BrConfigurationSerializable.Config(Path = "Location")
     var location: Location
         private set
     @BrConfigurationSerializable.Config(Path = "Triggers")
     val triggers: TriggerList = TriggerList()
 
-    protected constructor(type: SignType, loc: Location) {
+    protected constructor(type: String, loc: Location) {
         this.type = type
         this.location = loc
     }
 
-    constructor(args: Map<String, Any>, type: SignType) {
+    constructor(args: Map<String, Any>, type: String) {
         this.type = type
         location = args["Location"] as Location
         BrConfigurationSerializable.deserialize(args, this)
@@ -114,33 +114,46 @@ class InGameSign(
 
 interface UnTriggerable
 
-enum class SignType(val type: String, private val clazz: Class<out LDSign>, val des: Array<String>) {
-    START("Start", StartSign::class.java, arrayOf("标识副本开始位置", "无参数 不接受触发器")),
-    MOB("Mob", MobSign::class.java, arrayOf("标识怪物刷新点", "参数: [s怪物名] | (i数量:1)", "接受触发器 若无参数 将会自动在玩家进入副本执行")),
-    MESSAGE("Message", MessageSign::class.java, arrayOf("向玩家发送消息", "参数: [s信息] 三行信息将会合并", "接受触发器")),
-    ACTIONBAR("ActionBar", ActionBarSign::class.java, arrayOf("向玩家发送物品栏上方的小字", "参数: [s信息] 三行信息将会合并", "接受触发器")),
-    TELEPORT("Teleport", TeleportSign::class.java, arrayOf("将玩家传送", "参数: (s x y z坐标) 接受触发器", "无参数表示传送到牌子所在位置")),
-    COMMAND("Command", CommandSign::class.java, arrayOf("执行命令", "参数: [s命令]多行将会合并 换行不代表空格", "%p为玩家名字变量 命令为后台执行")),
-    COMPLETE("Complete", CompleteSign::class.java, arrayOf("触发本牌子后完成副本", "无参数 接受触发器"));
+object SignManager {
+    val registered = mutableListOf<SignData>()
+    fun register(type: String, clazz: Class<out LDSign>, des: Array<String>) {
+        val rd = SignData(type, clazz, des)
+        registered += rd
+    }
 
+    fun init() {
+        register("Start", StartSign::class.java, arrayOf("标识副本开始位置", "无参数 不接受触发器"))
+        register("Mob", MobSign::class.java, arrayOf("标识怪物刷新点", "参数: [s怪物名] | (i数量:1)", "接受触发器 若无参数 将会自动在玩家进入副本执行"))
+        register("Message", MessageSign::class.java, arrayOf("向玩家发送消息", "参数: [s信息] 三行信息将会合并", "接受触发器"))
+        register("ActionBar", ActionBarSign::class.java, arrayOf("向玩家发送物品栏上方的小字", "参数: [s信息] 三行信息将会合并", "接受触发器"))
+        register("Teleport", TeleportSign::class.java, arrayOf("将玩家传送", "参数: (s x y z坐标) 接受触发器", "无参数表示传送到牌子所在位置"))
+        register("Command", CommandSign::class.java, arrayOf("执行命令", "参数: [s命令]多行将会合并 换行不代表空格", "%p为玩家名字变量 命令为后台执行"))
+        register("Complete", CompleteSign::class.java, arrayOf("触发本牌子后完成副本", "无参数 接受触发器"))
+        register("Title", TitleSign::class.java, arrayOf("发送Title", "前两行信息将会变为title,最后一行为subtitle"))
+    }
+
+    fun getSignType(type: String): SignData? {
+        for (t in registered) {
+            if (t.type.equals(type, ignoreCase = true))
+                return t
+        }
+        return null
+    }
+}
+
+data class SignData(
+        val type: String,
+        val clazz: Class<out LDSign>,
+        val des: Array<String>
+) {
     init {
         ConfigurationSerialization.registerClass(clazz)
-        println("注册$type")
     }
 
     fun <T : LDSign> newInstance(loc: Location): T {
         val cons = this.clazz.getConstructor(Location::class.java)
         return cons.newInstance(loc) as T
     }
-
-    companion object {
-        fun getSignType(type: String): SignType? {
-            for (t in SignType.values()) {
-                if (t.type.equals(type, ignoreCase = true))
-                    return t
-            }
-            return null
-        }
-    }
 }
+
 
