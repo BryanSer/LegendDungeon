@@ -207,14 +207,14 @@ class Game(
 
     @EventHandler
     fun onEntityDeath(evt: EntityDeathEvent) {
-        val ldmke = LDMobKillEvent(this, evt.entity)
-        Bukkit.getPluginManager().callEvent(ldmke)
         if (!EnableLootRule) {
             return
         }
         if (evt.entity.world !== this.world) {
             return
         }
+        val ldmke = LDMobKillEvent(this, evt.entity)
+        Bukkit.getPluginManager().callEvent(ldmke)
         val mm = MythicMobs.inst().mobManager.getMythicMobInstance(evt.entity)
         if (mm !== null) {
             return
