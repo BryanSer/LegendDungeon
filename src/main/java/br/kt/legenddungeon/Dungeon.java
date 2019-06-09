@@ -43,8 +43,9 @@ public class Dungeon implements BrConfigurationSerializable {
     private Set<Integer> creating = new HashSet<>();
 
     public int newId() {
-        if (games.size() >= MAX_DUNGEON_AMOUNT)
+        if (games.size() >= MAX_DUNGEON_AMOUNT) {
             return -1;
+        }
         int maxid = 0;
         for (Game game : games.values()) {
             if (game.getId() > maxid) {
@@ -68,8 +69,9 @@ public class Dungeon implements BrConfigurationSerializable {
     }
 
     public void init() {
-        if (TimeLimit <= 0)
+        if (TimeLimit <= 0) {
             TimeLimit = 15;
+        }
         World w = getBaseWorld();
         if (w == null) {
             w = WorldManager.createFlatWorld(this.getBaseWorldName());

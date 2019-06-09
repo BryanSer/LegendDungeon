@@ -2,6 +2,7 @@ package br.kt.legenddungeon
 
 import Br.API.CallBack
 import Br.API.GUI.Ex.UIManager
+import br.kt.legenddungeon.event.*
 import org.bukkit.Bukkit
 import org.bukkit.Location
 import org.bukkit.configuration.file.YamlConfiguration
@@ -67,6 +68,8 @@ class Team(var leader: Player) {
     }
 
     fun disband() {
+        val evt = LDTeamDisbandEvent(this)
+        Bukkit.getPluginManager().callEvent(evt)
         this.broadcast("§6队伍已被队长解散")
         for (key in TeamManager.inviteMap.keys) {
             if (TeamManager.inviteMap[key]?.leader == this.leader.name) {
@@ -95,6 +98,11 @@ class Team(var leader: Player) {
         }
         if (!EnableLootRule) {
             return dun.createGame(this, LootRule.RANDOM)
+        }
+        val evt = LDGameRuleSettingEvent(this)
+        Bukkit.getPluginManager().callEvent(evt)
+        if (evt.rule != null) {
+            return dun.createGame(this, evt.rule)
         }
         Bukkit.getScheduler().runTask(Main.getMain()) {
             CallBack.cancelButtonRequest(leader)
@@ -142,6 +150,8 @@ object TeamManager {
         val team: Team = Team(leader)
         playerMap[leader.name] = leader.name
         teamMap[leader.name] = team
+        val evt = LDTeamCreateEvent(team)
+        Bukkit.getPluginManager().callEvent(evt)
         return "§6队伍创建成功"
     }
 
@@ -152,7 +162,7 @@ object TeamManager {
                     fun onPlayerQuit(evt: PlayerQuitEvent) {
                         if (playerMap.containsKey(evt.player.name)) {
                             val team = teamMap[playerMap[evt.player.name]] ?: return
-                                team.leave(evt.player)
+                            team.leave(evt.player)
                         }
                     }
                 }, Main.getMain()
@@ -225,7 +235,7 @@ object TeamManager {
                         return@setExecutor true
                     }
                     if (args.size < 2) {
-                        p.sendMessage("§c参数不足 需要指定邀请玩家")
+                        p.sendMessage("§c参数不足 需要指定提出玩家")
                         return@setExecutor true
                     }
                     val target = Bukkit.getPlayerExact(args[1])
@@ -285,6 +295,8 @@ object TeamManager {
                     team.members.add(team.leader)
                     team.members.remove(target)
                     team.leader = target
+                    val evt = LDTeamLeaderChangeEvent(team, p.name, target.name)
+                    Bukkit.getPluginManager().callEvent(evt)
                     team.broadcast("§c队长已经被移交给${target.name}")
                     return@setExecutor true
                 }
@@ -302,6 +314,13 @@ object TeamManager {
                     return@setExecutor true
                 }
                 "play" -> {
+                    if (args.size < 2) {
+                        val evt = LDPlayerCommandEvent(p)
+                        Bukkit.getPluginManager().callEvent(evt)
+                        if (evt.isCancelled) {
+                            return@setExecutor true
+                        }
+                    }
                     if (args.size > 2 && args[2] == "tryforcreate") {
                         return@setExecutor true
                     }

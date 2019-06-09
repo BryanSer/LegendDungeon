@@ -3,6 +3,7 @@ package br.kt.legenddungeon
 import Br.API.CallBack
 import Br.API.TitleUtils
 import Br.API.Utils
+import br.kt.legenddungeon.event.LDGameDestroyEvent
 import br.kt.legenddungeon.event.LDMobKillEvent
 import br.kt.legenddungeon.sign.InGameSign
 import br.kt.legenddungeon.sign.StartSign
@@ -94,13 +95,13 @@ class Game(
         }, 100, 2)
     }
 
-    @EventHandler(priority = EventPriority.MONITOR)
-    fun onEntityDamage(evt: EntityDamageByEntityEvent) {
-        if (!EnableLootRule) {
-            if (evt.damager.world === this.world)
-                evt.isCancelled = false
-        }
-    }
+//    @EventHandler(priority = EventPriority.MONITOR)
+//    fun onEntityDamage(evt: EntityDamageByEntityEvent) {
+//        if (!EnableLootRule) {
+//            if (evt.damager.world === this.world)
+//                evt.isCancelled = false
+//        }
+//    }
 
     fun checkDropItem() {
         if (!EnableLootRule) {
@@ -118,11 +119,17 @@ class Game(
             it.remove()
             val itemStack = item.itemStack.clone()
             if (lootRule === LootRule.RANDOM) {
+
                 val amount = itemStack.amount
                 itemStack.amount = 1
                 for (i in 1..amount) {
                     val t = randomPlayer()
-                    Utils.safeGiveItem(t, itemStack)
+                    if (t.inventory.firstEmpty() != -1)
+                        Utils.safeGiveItem(t, itemStack)
+                    else {
+                        val dropItem = t.world.dropItem(t.location.add(0.00, 4.0, 0.0), itemStack.clone())
+                        setPlayerDrop(dropItem)
+                    }
                 }
             } else {
                 team.lootItem.add(itemStack)
@@ -175,7 +182,7 @@ class Game(
         if (evt.entity.killer != null) {
             return
         }
-        val p = Bukkit.getPlayerExact(lastDamage[evt.entity.entityId]) ?: return
+        val p = Bukkit.getPlayerExact(lastDamage[evt.entity.entityId] ?: return) ?: return
         RefTool.setKiller(evt.entity, p)
     }
 
@@ -193,7 +200,12 @@ class Game(
                 item.amount = 1
                 for (i in 1..it.amount) {
                     val t = randomPlayer()
-                    Utils.safeGiveItem(t, item)
+                    if (t.inventory.firstEmpty() != -1)
+                        Utils.safeGiveItem(t, item)
+                    else {
+                        val dropItem = t.world.dropItem(t.location.add(0.00, 4.0, 0.0), item.clone())
+                        setPlayerDrop(dropItem)
+                    }
                 }
             }
         } else {
@@ -225,7 +237,12 @@ class Game(
                 item.amount = 1
                 for (i in 1..it.amount) {
                     val t = randomPlayer()
-                    Utils.safeGiveItem(t, item)
+                    if (t.inventory.firstEmpty() != -1)
+                        Utils.safeGiveItem(t, item)
+                    else {
+                        val dropItem = t.world.dropItem(t.location.add(0.00, 4.0, 0.0), item.clone())
+                        setPlayerDrop(dropItem)
+                    }
                 }
             }
         } else {
@@ -483,6 +500,8 @@ class Game(
             return
         }
         destoryed = true
+        val evt = LDGameDestroyEvent(this)
+        Bukkit.getPluginManager().callEvent(evt)
         HandlerList.unregisterAll(this)
         for (p in team.getPlayers()) {
             CallBack.cancelButtonRequest(p)

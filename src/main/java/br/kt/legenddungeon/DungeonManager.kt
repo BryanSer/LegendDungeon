@@ -14,6 +14,7 @@ import org.bukkit.event.EventPriority
 import org.bukkit.event.Listener
 import org.bukkit.event.block.BlockBreakEvent
 import org.bukkit.event.block.SignChangeEvent
+import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerTeleportEvent
 import java.io.File
 
@@ -24,6 +25,15 @@ object DungeonManager : Listener {
 
     fun init() {
         Bukkit.getPluginManager().registerEvents(this, Main.getMain())
+    }
+
+    var loadConfig = false
+    @EventHandler
+    fun onPlayerJoin(evt: PlayerJoinEvent) {
+        if (!loadConfig) {
+            load()
+            loadConfig = true
+        }
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)

@@ -35,7 +35,7 @@ class Main : JavaPlugin() {
         SignManager.init()
         ConfigurationSerialization.registerClass(Dungeon::class.java)
         PlayerManager.load()
-        DungeonManager.load()
+        //DungeonManager.load()
         TeamManager.init()
         Setting.loadConfig()
         initDunCommand()
@@ -48,6 +48,11 @@ class Main : JavaPlugin() {
     }
 
     override fun onDisable() {
+        for (p in Bukkit.getOnlinePlayers()) {
+            DungeonManager.getDungeon(p.world) ?: continue
+            val loc = DungeonManager.whereFrom.remove(p.name) ?: continue
+            p.teleport(loc)
+        }
         DungeonManager.save()
         PlayerManager.save()
     }
@@ -58,6 +63,7 @@ class Main : JavaPlugin() {
         fun getMain(): Main {
             return mainInstance as Main
         }
+
         fun hookPAPI() {
             object : EZPlaceholderHook(mainInstance, "legenddungeon") {
                 override fun onPlaceholderRequest(p: Player, params: String): String {
