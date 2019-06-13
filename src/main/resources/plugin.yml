@@ -2,7 +2,7 @@ name: LegendDungeon
 author: Bryan_lzh
 main: br.kt.legenddungeon.Main
 depend: [MythicMobs,BrAPI,PlaceholderAPI]
-version: 1.4.2
+version: 1.5.0
 
 commands:
   LegendDungeonTeam:

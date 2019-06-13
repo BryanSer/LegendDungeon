@@ -47,7 +47,7 @@ class Game(
     var gameStop = false
     private var gameWin = false
 
-    var startLocation: Location? = null
+    var respawnLocation: Location? = null
     private var lastRespawnMessage: Int = 0
 
     val playerFrom: MutableMap<String, Location> = HashMap()
@@ -56,12 +56,12 @@ class Game(
         team.playingGame = this
         for (s in dun.signs) {
             if (s is StartSign) {
-                startLocation = s.getInGameLocation(this)
+                respawnLocation = s.getInGameLocation(this)
                 continue
             }
             signs.add(s.createInGameSign(this))
         }
-        if (startLocation === null) {
+        if (respawnLocation === null) {
             throw IllegalStateException("没有开始副本的地方")
         }
 
@@ -269,7 +269,7 @@ class Game(
     fun start() {
         for (p in team.getPlayers()) {
             playerFrom[p.name] = p.location
-            p.teleport(this.startLocation)
+            p.teleport(this.respawnLocation)
             playerDeathTimes[p.name] = 0
             p.gameMode = GameMode.ADVENTURE
         }
@@ -341,7 +341,7 @@ class Game(
                 return
             }
             if (Setting.hasRespawnCoinAndRemove(p)) {
-                p.teleport(this.startLocation)
+                p.teleport(this.respawnLocation)
                 p.gameMode = GameMode.ADVENTURE
             } else {
                 p.sendMessage("§c你没有足够的复活币")
@@ -421,7 +421,7 @@ class Game(
     @EventHandler(priority = EventPriority.HIGHEST)
     fun onRespawn(evt: PlayerRespawnEvent) {
         if (inGame(evt.player)) {
-            evt.respawnLocation = this.startLocation
+            evt.respawnLocation = this.respawnLocation
             val death = playerDeathTimes[evt.player.name] ?: 0
             if (death > this.dun.maxDeath) {
                 evt.player.sendMessage("§c你的复活次数已经用尽")

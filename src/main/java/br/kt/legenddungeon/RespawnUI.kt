@@ -77,7 +77,7 @@ class RespawnUI : BaseUI() {
                     return@setClick
                 }
                 if (Setting.hasRespawnCoinAndRemove(p)) {
-                    target.teleport(game.startLocation)
+                    target.teleport(game.respawnLocation)
                     target.gameMode = GameMode.ADVENTURE
                 } else {
                     p.sendMessage("§c你没有足够的复活币")

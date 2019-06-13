@@ -38,7 +38,7 @@ public class Dungeon implements BrConfigurationSerializable {
     @Config
     private int TimeLimit = 15;
 
-    private Map<UUID, Game> games = new HashMap<>();
+    public Map<UUID, Game> games = new HashMap<>();
 
     private Set<Integer> creating = new HashSet<>();
 

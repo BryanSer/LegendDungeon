@@ -96,6 +96,11 @@ class Team(var leader: Player) {
         if (!dun.isEnable) {
             return "§c这个副本没有开启"
         }
+        val ldpge = LDPlayGameEvent(this, dun)
+        Bukkit.getPluginManager().callEvent(ldpge)
+        if (ldpge.isCancelled) {
+            return "§c副本创建已被取消"
+        }
         if (!EnableLootRule) {
             return dun.createGame(this, LootRule.RANDOM)
         }
