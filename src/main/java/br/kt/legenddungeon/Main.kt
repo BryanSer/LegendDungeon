@@ -53,6 +53,7 @@ class Main : JavaPlugin() {
             val loc = DungeonManager.whereFrom.remove(p.name) ?: continue
             p.teleport(loc)
         }
+
         DungeonManager.save()
         PlayerManager.save()
     }

@@ -153,7 +153,6 @@ object DungeonManager : Listener {
             val name = f.name.removeSuffix(".yml")
             loadWorld(name)
             val data = YamlConfiguration.loadConfiguration(f)
-            println(data)
             dungeons[name] = data["Dungeon"] as Dungeon
         }
     }
@@ -174,6 +173,9 @@ object DungeonManager : Listener {
     }
 
     fun save() {
+        if(!loadConfig){
+            return
+        }
         val folder = File(Main.getMain().dataFolder, "Dungeons")
         if (!folder.exists()) {
             folder.mkdirs()
