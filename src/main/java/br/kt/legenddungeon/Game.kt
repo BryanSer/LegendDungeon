@@ -31,6 +31,16 @@ import org.bukkit.scheduler.BukkitTask
 import java.io.File
 import java.util.*
 
+data class FromData(
+        val loc:Location,
+        val mode:GameMode
+){
+    fun go(p: Player){
+        p.teleport(loc)
+        p.gameMode = mode
+    }
+}
+
 class Game(
         val world: World,
         val id: Int,
@@ -50,7 +60,8 @@ class Game(
     var respawnLocation: Location? = null
     private var lastRespawnMessage: Int = 0
 
-    val playerFrom: MutableMap<String, Location> = HashMap()
+    val playerFrom: MutableMap<String, FromData> = HashMap()
+
 
     init {
         team.playingGame = this
@@ -268,14 +279,14 @@ class Game(
 
     fun start() {
         for (p in team.getPlayers()) {
-            playerFrom[p.name] = p.location
+            playerFrom[p.name] = FromData(p.location,p.gameMode)
             p.teleport(this.respawnLocation)
             playerDeathTimes[p.name] = 0
             p.gameMode = GameMode.ADVENTURE
         }
         PlayerManager.doIt {
             for (e in playerFrom) {
-                it[e.key] = e.value
+                it[e.key] = e.value.loc
             }
         }
         if (EnableLootRule) {
@@ -301,9 +312,11 @@ class Game(
         }
         if (!gameWin)
             team.leave(p)
-        val loc = playerFrom.remove(p.name)
-        if (loc != null)
-            p.teleport(loc)
+        val fd = playerFrom.remove(p.name)
+        if (fd != null){
+            fd.go(p)
+        }
+
         PlayerManager.doIt {
             it.remove(p.name)
         }
@@ -397,6 +410,7 @@ class Game(
     }
 
     companion object : Listener {
+        const val GAMEOVER_WAIT_TIME: Int = 30
         val drop = mutableSetOf<Int>()
 
         @EventHandler
@@ -464,14 +478,14 @@ class Game(
             this.broadcast("§c副本挑战失败")
             this.destroy()
         }
-        this.broadcast("§c副本挑战失败 30秒内可使用复活币")
+        this.broadcast("§c副本挑战失败 $GAMEOVER_WAIT_TIME 秒内可使用复活币")
         gameStop = true
         //gameWin = true
         for (p in getPlayers()) {
             Utils.sendCommandButton(p, "§8[§c§l系统§8]队伍全体的复活次数已用完,是否使用复活币复活？ §e§l§n点击我使用复活币", "/ldp respawn")
         }
         val task = object : BukkitRunnable() {
-            var time = 30
+            var time = GAMEOVER_WAIT_TIME
             override fun run() {
                 if (checkAlive()) {
                     this.cancel()
@@ -479,7 +493,7 @@ class Game(
                     gameWin = false
                     return
                 }
-                if (time == 30 || time <= 10)
+                if (time == GAMEOVER_WAIT_TIME || time <= 10)
                     for (p in getPlayers()) {
                         TitleUtils.sendTitle(p, 1, 18, 1, "§c副本挑战失败", "${time}秒内可使用复活币")
                     }
@@ -505,7 +519,7 @@ class Game(
         HandlerList.unregisterAll(this)
         for (p in team.getPlayers()) {
             CallBack.cancelButtonRequest(p)
-            p.teleport(playerFrom[p.name] ?: continue)
+            playerFrom[p.name]?.go(p)
         }
         PlayerManager.doIt {
             for (k in playerFrom.keys) {
