@@ -14,7 +14,12 @@ class LootUI : BaseUI() {
         val team = TeamManager.getTeam(p) ?: return@getDefaultSnapshotFactory
         m["Team"] = team
         m["Page"] = 0
-
+        if (TeamManager.playerLootUI.contains(p.name)) {
+            TeamManager.playerLootUI.remove(p.name)
+            m["Self"] = true
+        } else {
+            m["Self"] = false
+        }
     }
     private val contains = arrayOfNulls<Item>(54)
 
@@ -31,29 +36,46 @@ class LootUI : BaseUI() {
         for (i in 0..44) {
             val index = i
             contains[index] = Item.getNewInstance { p ->
-                val team = this.getTeam(p)
-                if (team == null) {
-                    null
-                } else {
-                    val snap = this.getSnapshot(p)
-                    val page = snap.getData("Page") as Int
-                    val target = page * 45 + index
-                    val list = team.lootItem
-                    if (list.size <= target) {
-                        return@getNewInstance null
-                    }
-                    return@getNewInstance list[target].clone()
-                }
-            }.setClick(ClickType.LEFT) { p ->
-                val team = this.getTeam(p) ?: return@setClick
-                if (team.leader !== p) {
-                    p.sendMessage("§c只有队长可以提取出里面的东西")
-                    return@setClick
-                }
                 val snap = this.getSnapshot(p)
                 val page = snap.getData("Page") as Int
                 val target = page * 45 + index
-                val list = team.lootItem
+                val self = snap.getData("Self") as Boolean
+                val list = if (!self) {
+                    val team = this.getTeam(p) ?: return@getNewInstance null
+                    team.lootItem
+                } else {
+                    var t = TeamManager.playerLoot[p.name]
+                    if (t == null) {
+                        t = ArrayList()
+                        TeamManager.playerLoot[p.name] = t!!
+                    }
+                    t!!
+                }
+                if (list.size <= target) {
+                    return@getNewInstance null
+                }
+                return@getNewInstance list[target].clone()
+
+            }.setClick(ClickType.LEFT) { p ->
+                val snap = this.getSnapshot(p)
+                val page = snap.getData("Page") as Int
+                val target = page * 45 + index
+                val self = snap.getData("Self") as Boolean
+                val list = if (!self) {
+                    val team = this.getTeam(p) ?: return@setClick
+                    if (team.leader !== p) {
+                        p.sendMessage("§c只有队长可以提取出里面的东西")
+                        return@setClick
+                    }
+                    team.lootItem
+                } else {
+                    var t = TeamManager.playerLoot[p.name]
+                    if (t == null) {
+                        t = ArrayList()
+                        TeamManager.playerLoot[p.name] = t!!
+                    }
+                    t!!
+                }
                 if (list.size <= target) {
                     return@setClick
                 }
@@ -64,14 +86,10 @@ class LootUI : BaseUI() {
         }
 
         contains[45] = Item.getNewInstance { p: Player ->
-            val team = this.getTeam(p)
-            if (team == null) {
-                null
-            } else {
-                val snap = this.getSnapshot(p)
-                val page = snap.getData("Page") as Int
-                if (page == 0) null else prevPage
-            }
+            val snap = this.getSnapshot(p)
+            val page = snap.getData("Page") as Int
+            if (page == 0) null else prevPage
+
         }.setClick(ClickType.LEFT) {
             val snap = this.getSnapshot(it)
             val page = snap.getData("Page") as Int
@@ -81,12 +99,7 @@ class LootUI : BaseUI() {
         }
 
         contains[53] = Item.getNewInstance { p: Player ->
-            val team = this.getTeam(p)
-            if (team == null) {
-                null
-            } else {
-                nextPage
-            }
+            nextPage
         }.setClick(ClickType.LEFT) {
             val snap = this.getSnapshot(it)
             snap.setData("Page", snap.getData("Page") as Int + 1)

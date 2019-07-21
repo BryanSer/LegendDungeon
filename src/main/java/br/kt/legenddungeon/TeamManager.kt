@@ -145,6 +145,11 @@ object TeamManager {
     val playerMap: MutableMap<String, String> = HashMap()//玩家->队长
 
     val inviteMap: MutableMap<String, InviteData> = HashMap()//受邀玩家
+
+    val playerLoot: MutableMap<String, MutableList<ItemStack>> = HashMap()
+    val playerLootUI = mutableSetOf<String>()
+
+
     @JvmStatic
     fun getTeam(p: Player): Team? = teamMap[playerMap[p.name]]
 
@@ -182,6 +187,14 @@ object TeamManager {
                 return@setExecutor false
             }
             when (args[0].toLowerCase()) {
+                "drop" -> {
+                    if (!EnableLootRule) {
+                        return@setExecutor true
+                    }
+                    playerLootUI += p.name
+                    UIManager.OpenUI(p, "LDLUI")
+                    return@setExecutor true
+                }
                 "loot" -> {
                     if (!EnableLootRule) {
                         return@setExecutor true
