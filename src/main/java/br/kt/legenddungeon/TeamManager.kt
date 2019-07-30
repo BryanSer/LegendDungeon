@@ -17,7 +17,7 @@ import org.bukkit.scheduler.BukkitTask
 import java.io.File
 
 val EnableLootRule = true
-val EnableRespawnCoin = true
+val EnableRespawnCoin = false
 
 enum class LootRule {
     RANDOM,
@@ -391,7 +391,15 @@ object TeamManager {
                 }, 600)
         )
         p.sendMessage("§6[${team.leader.name}]的小队 向你发送邀请")
-        p.sendMessage("输入/ldp accept接受或/ldp decline拒绝")
+        CallBack.sendButtonRequest(p, arrayOf("§a点击同意邀请", "§c点击拒绝邀请"), { p, s ->
+            if (s != null) {
+                if (s == 0) {
+                    p.chat("/ldp accept")
+                } else {
+                    p.chat("/ldp refuse")
+                }
+            }
+        }, 30)
         return "§6已成功发送邀请"
     }
 

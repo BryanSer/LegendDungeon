@@ -353,12 +353,21 @@ class Game(
         if (!inGame(evt.player)) {
             return
         }
-
         val msg = evt.message.toLowerCase()
         if (msg.contains("ldp loot ingameopen")) {
+            if (dead.contains(evt.player.name)) {
+                evt.isCancelled = true
+                return
+            }
+
             return
         }
         if (msg.contains("ldp drop ingameopen")) {
+            if (dead.contains(evt.player.name)) {
+                evt.isCancelled = true
+                return
+            }
+
             return
         }
         if (msg.contains("ldp respawn ingame")) {
@@ -379,8 +388,8 @@ class Game(
             return
         }
         if (msg.matches(Regex("/?leave"))) {
-            if (evt.player.isDead) {
-                evt.player.sendMessage("§c死亡时不能使用这个命令")
+            if (dead.contains(evt.player.name)) {
+                evt.isCancelled = true
                 return
             }
             this.leave(evt.player)
@@ -406,6 +415,8 @@ class Game(
         }
     }
 
+    val dead = mutableSetOf<String>()
+
     @EventHandler
     fun onDeath(evt: PlayerDeathEvent) {
         if (!inGame(evt.entity)) {
@@ -413,6 +424,7 @@ class Game(
         }
         val time = (playerDeathTimes[evt.entity.name] ?: 0) + 1
         playerDeathTimes[evt.entity.name] = time
+        dead += evt.entity.name
         Bukkit.getScheduler().runTaskLater(Main.getMain(), {
             evt.entity.spigot().respawn()
             evt.entity.teleport(this.respawnLocation)
@@ -423,6 +435,7 @@ class Game(
                 if (EnableRespawnCoin)
                     Utils.sendCommandButton(evt.entity, "§8[§c§l系统§8]您的复活次数已用完,是否使用复活币复活？ §e§l§n点击我使用复活币", "/ldp respawn ingame")
             }
+            dead -= evt.entity.name
         }, 10)
     }
 
@@ -610,6 +623,9 @@ class Game(
             for (k in playerFrom.keys) {
                 it.remove(k)
             }
+        }
+        for (e in this.world.entities) {
+            e.remove()
         }
         team.playingGame = null
         this.team.inGame = false

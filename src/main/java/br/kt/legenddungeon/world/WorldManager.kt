@@ -2,6 +2,7 @@
 
 package br.kt.legenddungeon.world
 
+import org.bukkit.Difficulty
 import org.bukkit.World
 import org.bukkit.WorldCreator
 import org.bukkit.WorldType
@@ -20,6 +21,7 @@ fun createWorld(name: String, func: WorldCreatorConsumer): World {
     func(wc)
     val w = wc.createWorld()
     w.isAutoSave = true
+    w.difficulty = Difficulty.HARD
     return w
 }
 
