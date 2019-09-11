@@ -11,7 +11,7 @@ import org.bukkit.event.inventory.ClickType
 
 class LootUI : BaseUI() {
     private val factory = SnapshotFactory.getDefaultSnapshotFactory(this) { p, m ->
-        val team = TeamManager.getTeam(p) ?: return@getDefaultSnapshotFactory
+        val team = TeamManager.getTeam(p)
         m["Team"] = team
         m["Page"] = 0
         if (TeamManager.playerLootUI.contains(p.name)) {

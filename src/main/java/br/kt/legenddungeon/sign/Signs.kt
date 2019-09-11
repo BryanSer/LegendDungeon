@@ -189,10 +189,29 @@ class TeleportSign : LDSign {
 
 class CommandSign : LDSign {
     constructor(loc: Location) : super("Command", loc)
-    constructor(args: Map<String, Any>) : super(args, "Command")
+    constructor(args: Map<String, Any>) : super("Command", args["Location"] as Location) {
+        val cmd = args.get("Command") as? String
+        if (cmd == null) {
+            val cmd = args.get("command") as? String
+            if (cmd != null) {
+                command = cmd
+            }
+        } else {
+            command = cmd
+        }
+        super.triggers = args.get("Triggers") as TriggerList
+    }
 
     @BrConfigurationSerializable.Config(Path = "Command")
     private var command: String = ""
+
+    override fun serialize(): MutableMap<String, Any> {
+        val map = LinkedHashMap<String, Any>()
+        map["Location"] = this.location
+        map["Command"] = this.command
+        map["Triggers"] = this.triggers
+        return map
+    }
 
     override fun onTrigger(game: Game, loc: Location) {
         if (command.isEmpty())

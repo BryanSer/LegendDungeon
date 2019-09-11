@@ -151,7 +151,10 @@ object DungeonManager : Listener {
         }
         for (f in folder.listFiles()) {
             val name = f.name.removeSuffix(".yml")
-            loadWorld(name)
+            val worldname = "LD_Base_$name"
+            if (Bukkit.getWorld(worldname) == null) {
+                loadWorld(name)
+            }
             val data = YamlConfiguration.loadConfiguration(f)
             dungeons[name] = data["Dungeon"] as Dungeon
         }
@@ -165,6 +168,10 @@ object DungeonManager : Listener {
         val f = File(folder, "$name.yml")
         if (!f.exists()) {
             return "§c找不到数据"
+        }
+        val worldname = "LD_Base_$name"
+        if (Bukkit.getWorld(worldname) == null) {
+            loadWorld(name)
         }
         val data = YamlConfiguration.loadConfiguration(f)
         println(data)

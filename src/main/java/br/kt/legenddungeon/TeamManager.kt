@@ -17,7 +17,7 @@ import org.bukkit.scheduler.BukkitTask
 import java.io.File
 
 val EnableLootRule = true
-val EnableRespawnCoin = false
+val EnableRespawnCoin = true
 
 enum class LootRule {
     RANDOM,

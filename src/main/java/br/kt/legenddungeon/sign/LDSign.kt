@@ -18,7 +18,7 @@ abstract class LDSign : BrConfigurationSerializable {
     var location: Location
         private set
     @BrConfigurationSerializable.Config(Path = "Triggers")
-    val triggers: TriggerList = TriggerList()
+    var triggers: TriggerList = TriggerList()
 
     protected constructor(type: String, loc: Location) {
         this.type = type

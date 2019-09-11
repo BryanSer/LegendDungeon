@@ -314,7 +314,13 @@ class Game(
     val leftPlayers = mutableListOf<String>()
 
     fun leave(p: Player, tip: Boolean = false) {
+        if (p.isDead)
+            p.spigot().respawn()
         if (p == this.team.leader && !gameWin) {
+            val fd = playerFrom.remove(p.name)
+            if (fd != null) {
+                fd.go(p)
+            }
             this.broadcast("§c队长离开了副本 副本自动结束")
             this.destroy()
             //this.team.disband()
@@ -347,6 +353,15 @@ class Game(
     }
 
     fun inGame(p: Player): Boolean = this.team.inTeam(p) && !this.leftPlayers.contains(p.name)
+
+    fun anyDeath(): Boolean {
+        for (p in this.getPlayers()) {
+            if (dead.contains(p.name)) {
+                return true
+            }
+        }
+        return false
+    }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     fun onCommand(evt: PlayerCommandPreprocessEvent) {
@@ -388,7 +403,7 @@ class Game(
             return
         }
         if (msg.matches(Regex("/?leave"))) {
-            if (dead.contains(evt.player.name)) {
+            if (anyDeath()) {
                 evt.isCancelled = true
                 return
             }
@@ -424,6 +439,7 @@ class Game(
         }
         val time = (playerDeathTimes[evt.entity.name] ?: 0) + 1
         playerDeathTimes[evt.entity.name] = time
+
         dead += evt.entity.name
         Bukkit.getScheduler().runTaskLater(Main.getMain(), {
             evt.entity.spigot().respawn()
