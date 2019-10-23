@@ -3,7 +3,3 @@ AllowCommand:
     - 'class cast'
 #复活币的特殊lore
 RespawnCoinLore: '&r&e&a&c&r'
-
-
-#最大同时存在的缓存副本数
-MaxCacheDun: 0
