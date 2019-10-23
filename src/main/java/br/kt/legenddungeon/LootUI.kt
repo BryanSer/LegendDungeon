@@ -3,13 +3,19 @@ package br.kt.legenddungeon
 import Br.API.GUI.Ex.BaseUI
 import Br.API.GUI.Ex.Item
 import Br.API.GUI.Ex.SnapshotFactory
+import Br.API.GUI.Ex.UIManager
 import Br.API.ItemBuilder
-import Br.API.Utils
+import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.entity.Player
+import org.bukkit.event.EventHandler
+import org.bukkit.event.Listener
 import org.bukkit.event.inventory.ClickType
+import org.bukkit.event.inventory.InventoryClickEvent
 
-class LootUI : BaseUI() {
+class LootUI : BaseUI(), Listener {
+
+
     private val factory = SnapshotFactory.getDefaultSnapshotFactory(this) { p, m ->
         val team = TeamManager.getTeam(p)
         m["Team"] = team
@@ -27,7 +33,19 @@ class LootUI : BaseUI() {
     private val nextPage = ItemBuilder.getBuilder(Material.ARROW).name("§6下一页").build()
     private val prevPage = ItemBuilder.getBuilder(Material.ARROW).name("§6上一页").build()
 
+    @EventHandler
+    fun onClick(evt: InventoryClickEvent) {
+        val top = evt.view.topInventory
+        if (top.name?.contains(UIManager.UICODE) == true && top.name?.contains(UIManager.encode("LDLUI")) == true) {
+            if (evt.clickedInventory != top) {
+                evt.isCancelled = true
+            }
+        }
+
+    }
+
     init {
+        Bukkit.getPluginManager().registerEvents(this, Main.getMain())
         super.Rows = 6
         super.Name = "LDLUI"
         super.DisplayName = "§6§l战利品列表"
@@ -80,7 +98,7 @@ class LootUI : BaseUI() {
                     return@setClick
                 }
                 val item = list.removeAt(target).clone()
-                Utils.safeGiveItem(p, item)
+                p.inventory.addItem(item)
                 p.sendMessage("§6物品已放入你的背包 请分配给队友")
             }.setUpdateIcon(true).setUpdate(true)
         }
