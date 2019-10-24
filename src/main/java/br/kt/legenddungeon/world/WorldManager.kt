@@ -22,6 +22,7 @@ fun createWorld(name: String, func: WorldCreatorConsumer): World {
     val w = wc.createWorld()
     w.isAutoSave = true
     w.difficulty = Difficulty.HARD
+    w.setGameRuleValue("sendCommandFeedback", "false")
     return w
 }
 
