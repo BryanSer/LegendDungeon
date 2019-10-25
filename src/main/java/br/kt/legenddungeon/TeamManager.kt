@@ -18,7 +18,6 @@ import java.io.File
 
 val EnableLootRule = true
 val EnableRespawnCoin = false
-var MaxCacheDun: Int = 0
 
 enum class LootRule {
     RANDOM,
