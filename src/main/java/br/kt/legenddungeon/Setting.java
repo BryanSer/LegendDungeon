@@ -14,7 +14,7 @@ import java.util.List;
 public class Setting {
 
     public static String Message_Prefix = "[LegendDungeon]";
-    public static int Team_Max_Members = 4;
+    public static int Team_Max_Members = 6;
     private static String RESPAWN_COIN_KEY_LORE = "§1§2§3§3§3§r";
     public static List<String> AllowCommand = new ArrayList<>();
 

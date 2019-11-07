@@ -101,6 +101,22 @@ class Main : JavaPlugin() {
                             val pt = t.members.getOrNull(2)
                             return pt?.name ?: ""
                         }
+                        "team4" -> {
+                            val t = TeamManager.getTeam(p)
+                            if (t == null) {
+                                return ""
+                            }
+                            val pt = t.members.getOrNull(3)
+                            return pt?.name ?: ""
+                        }
+                        "team5" -> {
+                            val t = TeamManager.getTeam(p)
+                            if (t == null) {
+                                return ""
+                            }
+                            val pt = t.members.getOrNull(4)
+                            return pt?.name ?: ""
+                        }
                     }
                     return ""
                 }
