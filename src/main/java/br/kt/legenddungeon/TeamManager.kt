@@ -174,7 +174,9 @@ object TeamManager {
                             val team = teamMap[playerMap[evt.player.name]] ?: return
                             team.leave(evt.player)
                         }
+                        playerLoot.remove(evt.player.name)
                     }
+
                 }, Main.getMain()
         )
         val cmd = Main.getMain().getCommand("LegendDungeonTeam")

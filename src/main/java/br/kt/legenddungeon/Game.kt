@@ -48,13 +48,15 @@ data class FromData(
 val DAMAGE_BOOT = true
 
 class Game(
-        val world: World,
+        world: World,
         val id: Int,
         val dun: Dungeon,
         val team: Team,
         val lootRule: LootRule? = LootRule.RANDOM
 ) : Listener {
     val uuid: UUID = world.uid
+    val world: World
+        get() = Bukkit.getWorld(uuid)
 
     private val signs = ArrayList<InGameSign>()
     private val task: BukkitTask
@@ -565,6 +567,7 @@ class Game(
         gameStop = true
         gameWin = true
         val task = object : BukkitRunnable() {
+
             var time = 30
             override fun run() {
                 if (time <= 0) {
@@ -631,6 +634,9 @@ class Game(
         val evt = LDGameDestroyEvent(this)
         Bukkit.getPluginManager().callEvent(evt)
         HandlerList.unregisterAll(this)
+        for (s in signs) {
+            s.destroy()
+        }
         for (p in team.getPlayers()) {
             CallBack.cancelButtonRequest(p)
             playerFrom[p.name]?.go(p)
@@ -650,8 +656,10 @@ class Game(
         val f = File(Bukkit.getWorldContainer(), this.world.name)
         val del = File(f, "session.lock")
         del.delete()
-        Bukkit.unloadWorld(this.world.name, false)
+        Bukkit.unloadWorld(this.world, false)
         delete(f)
+        respawnLocation = null
+        signs.clear()
     }
 
     private fun delete(f: File) {

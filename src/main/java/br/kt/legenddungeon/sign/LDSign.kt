@@ -7,6 +7,8 @@ import br.kt.legenddungeon.trigger.TimesTrigger
 import br.kt.legenddungeon.trigger.Trigger
 import org.bukkit.Location
 import org.bukkit.configuration.serialization.ConfigurationSerialization
+import org.bukkit.event.HandlerList
+import org.bukkit.event.Listener
 
 typealias TriggerList = ArrayList<Trigger>
 typealias InGameTriggerList = ArrayList<InGameTrigger>
@@ -107,6 +109,14 @@ class InGameSign(
             triggeredTimes++
             if (triggeredTimes < maxTriggerTimes) {
                 triggerIndex = 0
+            }
+        }
+    }
+
+    fun destroy() {
+        for (t in triggers) {
+            if (t is Listener) {
+                HandlerList.unregisterAll(t)
             }
         }
     }

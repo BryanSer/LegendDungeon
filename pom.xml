@@ -65,9 +65,9 @@
             <systemPath>${project.basedir}/MythicMobs-4.1.0.jar</systemPath>
         </dependency>
         <dependency>
-            <groupId>br.bukkit</groupId>
+            <groupId>com.github.bryanser</groupId>
             <artifactId>BrAPI</artifactId>
-            <version>Release-4.1.3</version>
+            <version>Kt-1.0.5</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
